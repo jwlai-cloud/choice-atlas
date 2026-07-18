@@ -33,14 +33,18 @@ function Landmark({ title, detail, type, side, highlighted, onFocus }: {
   </button>
 }
 
-function Landscape({ activePriority, focus, setFocus, optionA, optionB }: {
-  activePriority: Priority | null; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string
+function Landscape({ activePriorities, focus, setFocus, optionA, optionB, horizon }: {
+  activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
 }) {
-  const activeClass = activePriority ? `priority-${tones[activePriority]}` : ''
+  const activeClasses = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
   const isFocus = (id: string) => focus === id
-  return <section className={`landscape ${activeClass}`} aria-label="Explorable uncertainty map">
+  return <section className={`landscape ${activeClasses}`} aria-label="Explorable uncertainty map">
     <div className="map-key" aria-label="Map legend">
       <span><EvidenceMark type="known" />Known</span><span><EvidenceMark type="assumption" />Assumption</span><span><EvidenceMark type="unknown" />Unknown</span>
+    </div>
+    <div className="priority-lens" aria-label={`Local emphasis: ${activePriorities.length ? activePriorities.join(', ') : 'none selected'}`}>
+      <span>Emphasis</span>
+      {activePriorities.length ? activePriorities.map((priority) => <i key={priority} className={tones[priority]}>{priority}</i>) : <i className="none">Choose a priority</i>}
     </div>
     <div className="route-label route-a"><span>Route A</span>{optionA}</div>
     <div className="route-label route-b"><span>Route B</span>{optionB}</div>
@@ -73,7 +77,7 @@ function Landscape({ activePriority, focus, setFocus, optionA, optionB }: {
     <Landmark title="Ordinary Tuesdays" detail="unseen terrain" type="unknown" side="b" highlighted={isFocus('day')} onFocus={() => setFocus('day')} />
     <Landmark title="Where home gathers" detail="unseen terrain" type="unknown" side="shared" highlighted={isFocus('roots')} onFocus={() => setFocus('roots')} />
     <div className="compass-rose" aria-hidden="true"><Icon name="compass" /><span>uncertainty<br/>cartography</span></div>
-    <div className="map-caption"><span>1 year</span><b>Two routes. One changing field.</b></div>
+    <div className="map-caption"><span>{horizon}</span><b>Two routes. One changing field.</b></div>
   </section>
 }
 
@@ -84,7 +88,6 @@ export default function App() {
   const [horizon, setHorizon] = useState(presetFutureMap.input.horizon)
   const [focus, setFocus] = useState('')
   const [notice, setNotice] = useState('Static preset map refreshed for your inputs.')
-  const activePriority = selected[0] ?? null
   const focused = useMemo(() => [...presetFutureMap.knowns, ...presetFutureMap.assumptions, ...presetFutureMap.unknowns].find(x => x.id === focus), [focus])
 
   function togglePriority(priority: Priority) {
@@ -127,7 +130,7 @@ export default function App() {
     </section>
     <section className="atlas-section" id="atlas" aria-labelledby="atlas-title">
       <div className="atlas-heading"><p className="eyebrow">02 / Read the field</p><h2 id="atlas-title">Your decision landscape</h2><p>{presetFutureMap.framing}</p></div>
-      <Landscape activePriority={activePriority} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} />
+      <Landscape activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
       <aside className="reading-panel" aria-live="polite">
         <div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'Legend'}</span>{focused && <EvidenceMark type={focused.status} />}</div>
         {focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>The map holds three kinds of information.</h3><p><b>Known</b> things are clear. <b>Assumptions</b> are visible, but porous. <b>Unknowns</b> sit in the fog—an invitation to look, not a gap to fill.</p></>}
