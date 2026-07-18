@@ -1,32 +1,64 @@
+import { z } from 'zod'
+
 /** Contract for the future server-side GPT-5.6 response. It intentionally has no recommendation field. */
-export type EvidenceStatus = 'known' | 'assumption' | 'unknown'
+export const EvidenceStatusSchema = z.enum(['known', 'assumption', 'unknown'])
+export type EvidenceStatus = z.infer<typeof EvidenceStatusSchema>
 
-export interface AtlasInput {
-  options: [string, string]
-  priorities: string[]
-  horizon: '3 months' | '1 year' | '3 years'
+const TextSchema = z.string().trim().min(1).max(280)
+const RouteSchema = z.string().trim().min(1).max(160)
+
+export const AtlasInputSchema = z.object({
+  options: z.tuple([RouteSchema, RouteSchema]).refine(([first, second]) => first !== second, 'Options must be distinct'),
+  priorities: z.array(z.string().trim().min(1).max(64)).max(3).refine((priorities) => new Set(priorities).size === priorities.length, 'Priorities must be distinct'),
+  horizon: z.enum(['3 months', '1 year', '3 years']),
+}).strict()
+export type AtlasInput = z.infer<typeof AtlasInputSchema>
+
+export const AtlasItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  label: TextSchema,
+  detail: TextSchema,
+  status: EvidenceStatusSchema,
+  option: z.enum(['a', 'b', 'shared']).nullable(),
+  priority: z.string().trim().min(1).max(64).nullable(),
+}).strict()
+export type AtlasItem = z.infer<typeof AtlasItemSchema>
+
+export const FutureMapResponseSchema = z.object({
+  version: z.literal('1.0'),
+  input: AtlasInputSchema,
+  framing: TextSchema,
+  knowns: z.array(AtlasItemSchema),
+  assumptions: z.array(AtlasItemSchema),
+  unknowns: z.array(AtlasItemSchema),
+  tradeoffs: z.array(AtlasItemSchema),
+  questionsToInvestigate: z.array(AtlasItemSchema),
+  notYet: AtlasItemSchema,
+  limitations: TextSchema,
+}).strict()
+
+export const FutureMapSchema = FutureMapResponseSchema.superRefine((map, context) => {
+  const expectedStatuses = [
+    ['knowns', map.knowns, 'known'],
+    ['assumptions', map.assumptions, 'assumption'],
+    ['unknowns', map.unknowns, 'unknown'],
+    ['questionsToInvestigate', map.questionsToInvestigate, 'unknown'],
+  ] as const
+
+  for (const [key, items, expectedStatus] of expectedStatuses) {
+    items.forEach((item, index) => {
+      if (item.status !== expectedStatus) context.addIssue({ code: 'custom', path: [key, index, 'status'], message: `${key} must contain ${expectedStatus} items` })
+    })
+  }
+})
+export type FutureMap = z.infer<typeof FutureMapSchema>
+
+export function parseAtlasInput(input: unknown): AtlasInput {
+  return AtlasInputSchema.parse(input)
 }
 
-export interface AtlasItem {
-  id: string
-  label: string
-  detail: string
-  status: EvidenceStatus
-  option?: 'a' | 'b' | 'shared'
-  priority?: string
-}
-
-export interface FutureMap {
-  version: '1.0'
-  input: AtlasInput
-  framing: string
-  knowns: AtlasItem[]
-  assumptions: AtlasItem[]
-  unknowns: AtlasItem[]
-  tradeoffs: AtlasItem[]
-  questionsToInvestigate: AtlasItem[]
-  notYet: AtlasItem
-  limitations: string
+export function parseFutureMap(map: unknown): FutureMap {
+  return FutureMapSchema.parse(map)
 }
 
 export const presetFutureMap: FutureMap = {
@@ -59,6 +91,6 @@ export const presetFutureMap: FutureMap = {
     { id: 'q2', label: 'Price the first six months in Berlin, including a buffer.', detail: 'Make the runway legible before it has to carry emotion.', status: 'unknown', option: 'b', priority: 'Financial runway' },
     { id: 'q3', label: 'Name the rituals that make Perth feel like yours.', detail: 'Distinguish a place from the relationships you would carry forward.', status: 'unknown', option: 'a', priority: 'Belonging' },
   ],
-  notYet: { id: 'not-yet', label: 'Not yet: choose a one-week field test', detail: 'Before choosing a route, gather one piece of lived evidence that changes the map.', status: 'unknown', option: 'shared' },
+  notYet: { id: 'not-yet', label: 'Not yet: choose a one-week field test', detail: 'Before choosing a route, gather one piece of lived evidence that changes the map.', status: 'unknown', option: 'shared', priority: null },
   limitations: 'This atlas organizes the information you provide. It does not know your future, predict outcomes, or recommend a choice.',
 }
