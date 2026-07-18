@@ -31,6 +31,7 @@ describe('createOpenAIRequester', () => {
     expect(parse.mock.calls[0][0]).toMatchObject({ model: 'gpt-5.6' })
     expect(JSON.stringify(parse.mock.calls[0][0])).toContain('must not recommend')
     expect(JSON.stringify(parse.mock.calls[0][0])).toContain('one known item for each route')
+    expect(JSON.stringify(parse.mock.calls[0][0])).not.toContain('"items":[{')
   })
 
   it('rejects a response with no parsed structured output', async () => {
