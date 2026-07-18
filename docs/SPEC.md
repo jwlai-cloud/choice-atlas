@@ -7,6 +7,7 @@ Status: **Approved for implementation — 2026-07-18**
 1. This is a responsive, modern-browser web prototype, not a native application.
 2. The Build Week brief is the source of truth: the product maps uncertainty and must never predict or recommend.
 3. GPT-5.6 is the explicitly requested model target; its API key is supplied only as a Vercel server-side environment variable.
+4. Live calls require a judge-entered code exchanged for a short-lived signed HttpOnly cookie; the code must never be accepted through a URL.
 4. The existing `FutureMap` contract is the boundary for all model output, with runtime validation before it reaches the UI.
 
 ## Objective
@@ -19,7 +20,7 @@ Success means a visitor can enter two labels, adjust priorities and horizon, rec
 
 - React 19 + TypeScript, rendered by Vite 8
 - CSS and inline SVG for the editorial landscape and motion
-- Vercel serverless function for the OpenAI Responses API boundary
+- Vercel serverless functions for the judge-access and OpenAI Responses API boundaries
 - OpenAI SDK and Zod runtime validation
 
 ## Commands
@@ -40,6 +41,7 @@ src/App.tsx              interactive prototype and map UI
 src/lib/futureMap.ts     typed provider-agnostic data contract and preset
 src/styles.css           responsive visual system and reduced-motion rules
 api/atlas.ts              Vercel serverless endpoint for live map generation
+api/judge-access.ts       judge-code exchange endpoint; sets a signed HttpOnly cookie
 server/lib/               server-only orchestration, OpenAI requester, and their unit tests
 server/routes/atlas.ts    compatibility facade for local server-side use
 api/atlas.test.ts         endpoint tests; src/lib/*.test.ts covers contract and client tests
@@ -79,6 +81,7 @@ export interface FutureMap {
 
 - The app builds and type-checks with the commands above.
 - The server accepts only a valid two-option request and never exposes `OPENAI_API_KEY` to the browser.
+- The server stores only a hash of the judge code and requires a valid signed session before live model work.
 - GPT-5.6 returns strict `FutureMap` JSON that passes runtime validation before the UI uses it.
 - If the live service is unavailable, the UI presents the preset fallback truthfully and remains usable.
 - Priorities visibly apply local emphasis to each corresponding map area; the horizon label matches the selected horizon.

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { handleAtlasRequest } from './atlas'
+import { handleAtlasRequest, type AccessChecker } from './atlas'
 import { presetFutureMap } from '../src/lib/futureMap'
 
 const input = {
@@ -16,11 +16,13 @@ function request(body: unknown) {
   })
 }
 
+const allowed: AccessChecker = () => ({ configured: true, authorized: true })
+
 describe('handleAtlasRequest', () => {
   it('returns a validated live map for valid input', async () => {
     const requestMap = vi.fn().mockResolvedValue({ ...presetFutureMap, input })
 
-    const response = await handleAtlasRequest(request(input), requestMap)
+    const response = await handleAtlasRequest(request(input), requestMap, allowed)
 
     expect(response.status).toBe(200)
     await expect(response.json()).resolves.toMatchObject({ version: '1.0', input })
@@ -30,7 +32,7 @@ describe('handleAtlasRequest', () => {
   it('rejects a malformed decision before contacting the model', async () => {
     const requestMap = vi.fn()
 
-    const response = await handleAtlasRequest(request({ ...input, options: ['Same', 'Same'] }), requestMap)
+    const response = await handleAtlasRequest(request({ ...input, options: ['Same', 'Same'] }), requestMap, allowed)
 
     expect(response.status).toBe(400)
     await expect(response.json()).resolves.toEqual({ error: 'Enter two distinct, non-empty routes.' })
@@ -38,7 +40,7 @@ describe('handleAtlasRequest', () => {
   })
 
   it('reports an unavailable live service without exposing internal errors', async () => {
-    const response = await handleAtlasRequest(request(input), async () => { throw new Error('OPENAI_API_KEY is not configured') })
+    const response = await handleAtlasRequest(request(input), async () => { throw new Error('OPENAI_API_KEY is not configured') }, allowed)
 
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({ error: 'Live mapping is not configured.' })
@@ -47,7 +49,7 @@ describe('handleAtlasRequest', () => {
   it('logs a provider failure server-side while keeping the response safe', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
-    const response = await handleAtlasRequest(request(input), async () => { throw new Error('Structured output schema rejected') })
+    const response = await handleAtlasRequest(request(input), async () => { throw new Error('Structured output schema rejected') }, allowed)
 
     expect(response.status).toBe(502)
     await expect(response.json()).resolves.toEqual({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' })
@@ -56,5 +58,14 @@ describe('handleAtlasRequest', () => {
       message: 'Structured output schema rejected',
     })
     errorSpy.mockRestore()
+  })
+
+  it('blocks the live model before parsing input when judge access is not authorized', async () => {
+    const requestMap = vi.fn()
+    const response = await handleAtlasRequest(request(input), requestMap, () => ({ configured: true, authorized: false }))
+
+    expect(response.status).toBe(401)
+    await expect(response.json()).resolves.toEqual({ error: 'Enter the judge access code to use live mapping.' })
+    expect(requestMap).not.toHaveBeenCalled()
   })
 })

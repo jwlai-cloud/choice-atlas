@@ -1,5 +1,6 @@
 import { generateFutureMap, type MapRequester } from '../server/lib/atlasService.js'
 import { createLiveOpenAIRequester } from '../server/lib/openaiRequester.js'
+import { readJudgeAccess, type JudgeAccessState } from '../server/lib/judgeAccess.js'
 import { parseAtlasInput } from '../src/lib/futureMap.js'
 
 const responseHeaders = { 'cache-control': 'no-store' }
@@ -15,8 +16,14 @@ function logMappingFailure(error: unknown) {
   console.error('Choice Atlas live mapping failed', details)
 }
 
-export async function handleAtlasRequest(request: Request, requestMap?: MapRequester): Promise<Response> {
+export type AccessChecker = (request: Request) => JudgeAccessState
+
+export async function handleAtlasRequest(request: Request, requestMap?: MapRequester, accessChecker: AccessChecker = readJudgeAccess): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405)
+
+  const access = accessChecker(request)
+  if (!access.configured) return json({ error: 'Live judge access is not configured.' }, 503)
+  if (!access.authorized) return json({ error: 'Enter the judge access code to use live mapping.' }, 401)
 
   let input
   try {
