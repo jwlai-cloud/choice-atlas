@@ -1,0 +1,103 @@
+# Choice Atlas — submission and demo plan
+
+## Verified production state
+
+- Live app: <https://choice-atlas-lac.vercel.app/>
+- The judge gate loads and the configured test code unlocks a signed browser session.
+- A real GPT-5.6 map completed in production for: “Continue leading the Perth team” versus “Join the Berlin studio.”
+- The live result was labelled **Live GPT-5.6 map**, rendered the evidence landscape, and supported landmark detail interaction.
+- Browser console: no errors or warnings observed.
+- Observed cold live-map time: approximately 47 seconds. Record a pre-warmed completed result rather than waiting through this in the final cut.
+
+## One pre-recording polish item
+
+When a valid model response has no `shared` unknown, two visual landmark slots can show the same unknown item. This does not affect the map’s content or safety boundary, but should be removed before final recording so the landscape never repeats a marker.
+
+## Devpost story draft
+
+# Choice Atlas
+
+**An uncertainty cartographer for meaningful two-option dilemmas—showing the shape of a choice without pretending to know its answer.**
+
+## Inspiration
+
+Some decisions are too human to reduce to a pros-and-cons list: stay and lead the team you know, or move for a role that may change your work and life. In those moments, people do not need another system confidently choosing for them. They need help separating what is already true, what they are assuming, what remains unknowable, and what question would make the next step clearer.
+
+## What it does
+
+Choice Atlas turns exactly two possible routes, up to three priorities, and a time horizon into one explorable decision landscape.
+
+1. A person names the two routes and the values that matter locally.
+2. GPT-5.6 acts as an uncertainty cartographer and returns structured knowns, assumptions, unknowns, trade-offs, investigation questions, and a “Not yet” field test.
+3. The interface renders them as one visual field: solid marks for knowns, translucent marks for assumptions, and fog for unknowns.
+4. The person explores signals, tensions, and questions that could change the map.
+
+The differentiator is deliberate restraint: Choice Atlas does not predict a future or recommend a route. It makes future possibilities and uncertainty visible as reference material for the person who must live with the choice.
+
+## How we built it
+
+- **Experience:** React + Vite with one responsive SVG decision landscape, keyboard-accessible landmarks, and reduced-motion support.
+- **AI boundary:** OpenAI Responses API with **GPT-5.6** and Zod structured output.
+- **Safety contract:** a strict `FutureMap` schema accepts only the requested categories and rejects undeclared recommendation-like output; server validation also checks that returned routes match the original request.
+- **Deployment:** Vercel serves the client and two serverless functions.
+- **Judge access:** a manually entered code is compared server-side using a SHA-256 hash, then exchanged for a four-hour signed `Secure`, `HttpOnly`, `SameSite=Lax` cookie. The code is never put in a URL or browser storage.
+
+## Challenges we ran into
+
+- Structured model output needed to be compatible with OpenAI’s schema requirements while preserving the product’s stricter internal rule of exactly two distinct routes. We separated the model-facing array schema from the internal tuple validation boundary.
+- A live model can be slow or unavailable during a demo. The app keeps a clearly labelled illustrative preset as a reliability path rather than pretending it is personalised analysis.
+- Model output must be useful without becoming advice. The prompt, schema, and UI all reinforce “map uncertainty; do not choose.”
+
+## Accomplishments we’re proud of
+
+- **29 automated tests** covering the contract, model boundary, server endpoints, judge session, and browser client behaviour.
+- **One verified production live mapping** through the complete judge-gate → GPT-5.6 → validated visual-map path.
+- A real interactive landscape instead of a chat transcript or two answer screens.
+
+## What we learned
+
+The most responsible AI interaction for a personal dilemma may be one that reduces false certainty rather than maximising confidence. Structured output and runtime validation are not only engineering hygiene here—they preserve the product’s ethical boundary.
+
+## What’s next
+
+- Improve visual placement when a live response has uneven evidence categories.
+- Add user-controlled follow-up evidence capture without storing private dilemmas by default.
+- Add evaluation cases for no-recommendation language and evidence-category coverage.
+
+## Built with
+
+OpenAI API, GPT-5.6, OpenAI Responses API, React, Vite, TypeScript, Zod, Vercel, SVG, Vitest.
+
+## Try it out
+
+- Live demo: <https://choice-atlas-lac.vercel.app/>
+- Source: <https://github.com/jwlai-cloud/choice-atlas>
+- Judge code: provide separately in Devpost’s private judge-instructions field.
+
+## Two-minute demo storyboard and narration
+
+| Time | On screen | Narration | Edit direction |
+|---|---|---|---|
+| 0:00–0:12 | Title and the hero line: “Don’t force a verdict. Learn the shape of the choice.” | “When a choice could change your life, a confident answer can be the least helpful thing. Choice Atlas helps you see the shape of uncertainty before you decide.” | Quiet fade in; hold the editorial typography. |
+| 0:12–0:32 | Two real routes appear: continue leading the Perth team / join the Berlin studio. Select priorities and one-year horizon. | “Start with exactly two meaningful routes, the values that matter, and a time horizon. Here, the tension is leadership continuity in Perth versus a studio opportunity in Berlin.” | Cursor follows each field. Never show the judge code. |
+| 0:32–0:44 | Brief unlocked live-demo state, then the Map button. | “For the live demo, GPT-5.6 is available through a protected server-side session. The browser never sees the API key, and the access code never appears in a URL.” | Use an already-unlocked clean session; cut immediately after pressing Map. |
+| 0:44–1:10 | Completed landscape labelled “Live GPT-5.6 map.” Hover/focus known, assumption, and unknown landmarks. | “Instead of a verdict, GPT-5.6 returns a structured map: what is known, what is assumed, and what is still in the fog. Solid signals are facts in the prompt. Translucent signals are assumptions. Fog marks the questions no model can honestly answer.” | Cut past the cold model wait. Slow zoom toward the evidence legend and one focused signal. |
+| 1:10–1:32 | Trade-offs, questions, and “Not yet.” | “The map makes trade-offs explicit—continuity versus novelty, leadership breadth versus studio immersion—and ends with questions that could change the map. The third route is ‘Not yet’: a reversible field test, not a disguised recommendation.” | Scroll rhythmically; highlight one question and the Not yet card. |
+| 1:32–1:50 | Architecture graphic: person → secure judge session → GPT-5.6 structured response → Zod FutureMap → landscape. | “Under the surface, the model is constrained by a FutureMap contract. The Vercel function validates every response and rejects recommendation-shaped output before the browser renders anything.” | Static diagram with a gentle pan across the five stages. |
+| 1:50–2:05 | Proof card: 29 tests, live production mapping, no recommendation boundary. | “We tested the contract, gate, client, and server in 29 automated tests, then verified the full live path in production.” | Large, readable numbers; hold for two seconds. |
+| 2:05–2:18 | Hero / live URL / final line. | “Choice Atlas does not decide a life for you. It gives you a better map for the decision you still own.” | Fade to project name, live link, and Devpost call to action. |
+
+## Capture and edit plan
+
+1. **Browser Use for clean proof and stills.** Use the in-app browser to create a dedicated, notification-free session; pre-unlock it; capture the hero, intake, live-map, focused-signal, trade-offs, and Not yet frames. Browser Use is ideal for verifying the UI, inspecting the live label, and taking repeatable screenshots. It does not provide a video-recording API in this session.
+2. **Screen recording for motion.** Record only the browser window in a clean dedicated profile or via the operating system’s screen recorder. The footage will show typed routes and priority selection, then cut from the Map click to the completed live map so judges do not wait through the observed cold request. Do not record the access-code entry, Vercel dashboard, or any secret.
+3. **Architecture card.** Build a compact SVG/Mermaid-style graphic from the five-stage sequence above—not a generic AI diagram.
+4. **Edit.** Normalize clips to 1280×720 at 30 fps; use short fades, a slow zoom on the map legend, and readable captions. Watch once muted to ensure the visual narrative stands on its own.
+5. **Voice-over.** This Mac has the locally installed `Karen (Premium)` English-Australian voice. After the narration is approved, generate a clean voice track and normalize it:
+
+   ```bash
+   say -v "Karen (Premium)" -r 178 -f demo-voiceover.txt -o choice-atlas-voiceover.aiff
+   ffmpeg -i choice-atlas-voiceover.aiff -af "loudnorm=I=-16:LRA=11:TP=-1.5" choice-atlas-voiceover.m4a
+   ```
+
+   Then mix it beneath the finished video with FFmpeg, using a low-level ambient bed only if it does not compete with the narration.
