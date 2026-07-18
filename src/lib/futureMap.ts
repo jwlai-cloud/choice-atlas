@@ -1,32 +1,62 @@
+import { z } from 'zod'
+
 /** Contract for the future server-side GPT-5.6 response. It intentionally has no recommendation field. */
-export type EvidenceStatus = 'known' | 'assumption' | 'unknown'
+export const EvidenceStatusSchema = z.enum(['known', 'assumption', 'unknown'])
+export type EvidenceStatus = z.infer<typeof EvidenceStatusSchema>
 
-export interface AtlasInput {
-  options: [string, string]
-  priorities: string[]
-  horizon: '3 months' | '1 year' | '3 years'
+const TextSchema = z.string().trim().min(1).max(280)
+const RouteSchema = z.string().trim().min(1).max(160)
+
+export const AtlasInputSchema = z.object({
+  options: z.tuple([RouteSchema, RouteSchema]).refine(([first, second]) => first !== second, 'Options must be distinct'),
+  priorities: z.array(z.string().trim().min(1).max(64)).max(3).refine((priorities) => new Set(priorities).size === priorities.length, 'Priorities must be distinct'),
+  horizon: z.enum(['3 months', '1 year', '3 years']),
+}).strict()
+export type AtlasInput = z.infer<typeof AtlasInputSchema>
+
+export const AtlasItemSchema = z.object({
+  id: z.string().trim().min(1).max(64),
+  label: TextSchema,
+  detail: TextSchema,
+  status: EvidenceStatusSchema,
+  option: z.enum(['a', 'b', 'shared']).optional(),
+  priority: z.string().trim().min(1).max(64).optional(),
+}).strict()
+export type AtlasItem = z.infer<typeof AtlasItemSchema>
+
+export const FutureMapSchema = z.object({
+  version: z.literal('1.0'),
+  input: AtlasInputSchema,
+  framing: TextSchema,
+  knowns: z.array(AtlasItemSchema),
+  assumptions: z.array(AtlasItemSchema),
+  unknowns: z.array(AtlasItemSchema),
+  tradeoffs: z.array(AtlasItemSchema),
+  questionsToInvestigate: z.array(AtlasItemSchema),
+  notYet: AtlasItemSchema,
+  limitations: TextSchema,
+}).strict().superRefine((map, context) => {
+  const expectedStatuses = [
+    ['knowns', map.knowns, 'known'],
+    ['assumptions', map.assumptions, 'assumption'],
+    ['unknowns', map.unknowns, 'unknown'],
+    ['questionsToInvestigate', map.questionsToInvestigate, 'unknown'],
+  ] as const
+
+  for (const [key, items, expectedStatus] of expectedStatuses) {
+    items.forEach((item, index) => {
+      if (item.status !== expectedStatus) context.addIssue({ code: 'custom', path: [key, index, 'status'], message: `${key} must contain ${expectedStatus} items` })
+    })
+  }
+})
+export type FutureMap = z.infer<typeof FutureMapSchema>
+
+export function parseAtlasInput(input: unknown): AtlasInput {
+  return AtlasInputSchema.parse(input)
 }
 
-export interface AtlasItem {
-  id: string
-  label: string
-  detail: string
-  status: EvidenceStatus
-  option?: 'a' | 'b' | 'shared'
-  priority?: string
-}
-
-export interface FutureMap {
-  version: '1.0'
-  input: AtlasInput
-  framing: string
-  knowns: AtlasItem[]
-  assumptions: AtlasItem[]
-  unknowns: AtlasItem[]
-  tradeoffs: AtlasItem[]
-  questionsToInvestigate: AtlasItem[]
-  notYet: AtlasItem
-  limitations: string
+export function parseFutureMap(map: unknown): FutureMap {
+  return FutureMapSchema.parse(map)
 }
 
 export const presetFutureMap: FutureMap = {
