@@ -1,4 +1,4 @@
-import { parseAtlasInput, parseFutureMap, type AtlasInput, type FutureMap } from './futureMap'
+import { parseAtlasInput, parseFutureMap, type AtlasInput, type FutureMap } from '../../src/lib/futureMap'
 
 export type MapRequester = (input: AtlasInput) => Promise<unknown>
 

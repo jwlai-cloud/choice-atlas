@@ -1,5 +1,5 @@
-import { generateFutureMap } from '../../src/lib/atlasService'
-import { createLiveOpenAIRequester } from '../../src/lib/openaiRequester'
+import { generateFutureMap } from '../lib/atlasService'
+import { createLiveOpenAIRequester } from '../lib/openaiRequester'
 import type { AtlasInput, FutureMap } from '../../src/lib/futureMap'
 
 /**

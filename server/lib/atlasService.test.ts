@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { AtlasInput } from './futureMap'
+import type { AtlasInput } from '../../src/lib/futureMap'
 import { generateFutureMap } from './atlasService'
 
 const input: AtlasInput = {

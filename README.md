@@ -55,7 +55,7 @@ Work on `dev` and open pull requests into `main`. The repository's `main` protec
 - `src/App.tsx` — accessible interactive prototype and SVG landscape
 - `src/styles.css` — responsive editorial visual system and reduced-motion support
 - `src/lib/futureMap.ts` — Zod-validated FutureMap contract + illustrative fallback
-- `src/lib/atlasService.ts` — provider-independent validation boundary
-- `src/lib/openaiRequester.ts` — server-only GPT-5.6 structured-output requester
+- `server/lib/atlasService.ts` — provider-independent validation boundary
+- `server/lib/openaiRequester.ts` — server-only GPT-5.6 structured-output requester
 - `api/atlas.ts` — Vercel `POST /api/atlas` function
 - `src/lib/atlasClient.ts` — browser request/fallback error boundary

@@ -50,7 +50,7 @@
 
 **Dependencies:** Task 2 and current official OpenAI API documentation
 
-**Files likely touched:** `src/lib/atlasService.ts`, `src/lib/atlasService.test.ts`, `server/routes/atlas.ts`
+**Files likely touched:** `server/lib/atlasService.ts`, `server/lib/atlasService.test.ts`, `server/routes/atlas.ts`
 
 **Estimated scope:** Medium
 

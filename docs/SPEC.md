@@ -40,9 +40,9 @@ src/App.tsx              interactive prototype and map UI
 src/lib/futureMap.ts     typed provider-agnostic data contract and preset
 src/styles.css           responsive visual system and reduced-motion rules
 api/atlas.ts              Vercel serverless endpoint for live map generation
-src/lib/atlasService.ts   pure input/output validation and map-generation orchestration
-server/routes/atlas.ts    compatibility re-export for local server-side use
-tests/                    unit and endpoint tests
+server/lib/               server-only orchestration, OpenAI requester, and their unit tests
+server/routes/atlas.ts    compatibility facade for local server-side use
+api/atlas.test.ts         endpoint tests; src/lib/*.test.ts covers contract and client tests
 docs/                    living project documentation
 .github/workflows/       pull-request source-branch guard
 ```
