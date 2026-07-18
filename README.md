@@ -31,14 +31,24 @@ npm run preview
 
 The deployed app sends the two options, priorities, and horizon to `POST /api/atlas`. That Vercel function holds `OPENAI_API_KEY`, calls the OpenAI Responses API with GPT-5.6 structured outputs, validates the returned `FutureMap`, and only then returns it to the browser. The key is never exposed to client code.
 
+Live mapping is deliberately judge-gated. A judge enters an access code in the interface—not in a URL—and the server exchanges it for a four-hour signed, `Secure`, `HttpOnly`, `SameSite=Lax` cookie. The access code itself never enters browser history, referrers, analytics URLs, or client storage. The server stores only its SHA-256 hash in environment configuration. Without a valid session, `POST /api/atlas` returns `401` before parsing the request or calling GPT; the illustrative preset remains fully explorable.
+
 If the service is unavailable or the output fails validation, the interface keeps working with a clearly labelled illustrative preset. That is a reliability path, not a claim that the preset is personalised.
 
 ## Deploy on Vercel
 
 1. Import this GitHub repository in Vercel and select the `dev` branch for a preview deployment (merge the PR to deploy `main` in production).
-2. In **Project Settings → Environment Variables**, add `OPENAI_API_KEY` for Preview and Production. Never prefix it with `VITE_` and never commit it.
-3. Deploy. Vercel builds the Vite client into `dist` and exposes `api/atlas.ts` as the server-side `POST /api/atlas` function.
-4. On the deployment URL, enter two distinct routes and press **Map the uncertainty**. A live success labels the map “Live GPT-5.6 mapping”; an outage or missing key shows “Illustrative preset fallback”.
+2. Create a high-entropy code to give judges and two server-only values. Keep the first output private; hash it locally before adding it to Vercel:
+
+   ```bash
+   openssl rand -base64 24
+   printf %s 'paste-the-code-you-will-give-judges' | shasum -a 256
+   openssl rand -base64 32
+   ```
+
+3. In **Project Settings → Environment Variables**, add these variables for **Preview and Production**: `OPENAI_API_KEY`, `JUDGE_ACCESS_CODE_HASH` (only the 64-character digest at the start of the `shasum` output), and `JUDGE_SESSION_SECRET` (the final random output). Never prefix them with `VITE_` and never commit them.
+4. Deploy. Vercel builds the Vite client into `dist` and exposes `api/atlas.ts` and `api/judge-access.ts` as server-side functions.
+5. On the deployment URL, enter the judge code in **Live demo access**, then enter two distinct routes and press **Map the uncertainty**. A live success labels the map “Live GPT-5.6 mapping”; an outage or missing configuration shows “Illustrative preset fallback”.
 
 Use [`.env.example`](.env.example) as the local variable-name reference. For a fully local serverless test, use the Vercel CLI with that variable configured; the regular Vite dev server deliberately has no API key or model endpoint.
 
@@ -59,3 +69,4 @@ Work on `dev` and open pull requests into `main`. The repository's `main` protec
 - `server/lib/openaiRequester.ts` — server-only GPT-5.6 structured-output requester
 - `api/atlas.ts` — Vercel `POST /api/atlas` function
 - `src/lib/atlasClient.ts` — browser request/fallback error boundary
+- `api/judge-access.ts` + `server/lib/judgeAccess.ts` — code exchange and signed judge-session boundary

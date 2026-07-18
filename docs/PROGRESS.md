@@ -15,6 +15,12 @@
 ### Awaiting deployment verification
 
 - The actual API call cannot be executed until Vercel has `OPENAI_API_KEY` configured. After the user deploys the `dev` preview, test a real two-route mapping and confirm the map source reads **Live GPT-5.6 mapping**.
+
+## 2026-07-18 — judge access gate
+
+- Added a judge-only live path: `POST /api/judge-access` verifies a code against the server-held SHA-256 hash and sets a four-hour signed, `Secure`, `HttpOnly`, `SameSite=Lax` cookie.
+- `POST /api/atlas` now requires that session before it parses a request or reaches the provider; the static preset stays available without access.
+- Added focused unit coverage for code verification, tampered/expired sessions, cookie attributes, endpoint blocking, and browser client behaviour. The Vercel Preview/Production environments still need `JUDGE_ACCESS_CODE_HASH` and `JUDGE_SESSION_SECRET` before this change can be exercised end-to-end.
 - Push the final documentation commit to the existing `dev` → `main` pull request, then refresh automated-review/check status after the providers have had time to run.
 
 ### Non-negotiable product boundary

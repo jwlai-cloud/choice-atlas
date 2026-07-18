@@ -1,11 +1,18 @@
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
-import { FutureMapResponseSchema, type AtlasInput } from '../../src/lib/futureMap'
-import type { MapRequester } from './atlasService'
+import { FutureMapResponseSchema, type AtlasInput } from '../../src/lib/futureMap.js'
+import type { MapRequester } from './atlasService.js'
 
 type StructuredResponsesClient = {
   responses: {
     parse: (request: unknown) => Promise<{ output_parsed: unknown }>
+  }
+}
+
+export class LiveMappingConfigurationError extends Error {
+  constructor() {
+    super('OPENAI_API_KEY is not configured')
+    this.name = 'LiveMappingConfigurationError'
   }
 }
 
@@ -37,6 +44,6 @@ export function createOpenAIRequester(client: StructuredResponsesClient): MapReq
 }
 
 export function createLiveOpenAIRequester(apiKey = process.env.OPENAI_API_KEY): MapRequester {
-  if (!apiKey) throw new Error('OPENAI_API_KEY is not configured')
+  if (!apiKey) throw new LiveMappingConfigurationError()
   return createOpenAIRequester(new OpenAI({ apiKey }) as unknown as StructuredResponsesClient)
 }

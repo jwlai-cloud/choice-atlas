@@ -2,16 +2,18 @@
 
 ## One-paragraph summary
 
-Choice Atlas is a Vite + React decision landscape with a small Vercel serverless boundary for live GPT-5.6 mapping. A person enters exactly two routes, up to three priorities, and a horizon. The browser asks `POST /api/atlas` for a structured map; the server holds the API key, calls the OpenAI Responses API, and validates the result before it reaches the UI. If that live path is unavailable, the UI shows a plainly labelled illustrative preset rather than inventing personalised analysis.
+Choice Atlas is a Vite + React decision landscape with a small Vercel serverless boundary for live GPT-5.6 mapping. A person enters exactly two routes, up to three priorities, and a horizon. The browser asks `POST /api/atlas` for a structured map; the server holds the API key, calls the OpenAI Responses API, and validates the result before it reaches the UI. A separate judge-code exchange creates a four-hour signed `HttpOnly` session before the map endpoint is reachable. If that live path is unavailable, the UI shows a plainly labelled illustrative preset rather than inventing personalised analysis.
 
 ## Components
 
 - `src/App.tsx` owns intake, loading, map-source, focus, and fallback state, then renders one shared SVG landscape.
 - `src/lib/futureMap.ts` contains the Zod input/output schemas, TypeScript types, and deterministic preset. The schema rejects extra fields such as a recommendation.
 - `src/lib/atlasClient.ts` is the browser-facing `fetch` wrapper for `/api/atlas`; it parses responses and surfaces safe errors.
+- `src/lib/judgeAccessClient.ts` exchanges a manually entered judge code for a server-set cookie and only asks whether a session exists; it never persists or URL-encodes the code.
 - `server/lib/atlasService.ts` is the provider-independent boundary. It validates input, validates model output, and checks that returned input matches the original request.
 - `server/lib/openaiRequester.ts` is server-only. It uses the OpenAI SDK Responses API with GPT-5.6 and Zod structured output; it reads `OPENAI_API_KEY` only from the server environment.
-- `api/atlas.ts` is the Vercel `POST /api/atlas` function. It turns malformed input into `400`, absent configuration into `503`, and invalid/provider output into `502` without disclosing secrets.
+- `api/judge-access.ts` compares the submitted code's SHA-256 value with `JUDGE_ACCESS_CODE_HASH` using a timing-safe check, then sets a signed `Secure`, `HttpOnly`, `SameSite=Lax` cookie.
+- `api/atlas.ts` is the Vercel `POST /api/atlas` function. It requires that cookie before parsing an input or reaching GPT; it turns missing judge configuration into `503`, no session into `401`, malformed input into `400`, and invalid/provider output into `502` without disclosing secrets.
 - `server/routes/atlas.ts` remains a compatibility facade for server consumers and delegates to the same validated service.
 - `src/styles.css` provides the responsive editorial presentation and reduced-motion fallback. It contains no model logic.
 
@@ -21,7 +23,8 @@ Choice Atlas is a Vite + React decision landscape with a small Vercel serverless
 Person's two routes + priorities + horizon
                  |
                  v
- React intake -> atlasClient -> POST /api/atlas (Vercel Function)
+ React intake -> judgeAccessClient -> POST /api/judge-access -> signed HttpOnly cookie
+ React intake -> atlasClient -> POST /api/atlas (Vercel Function, cookie required)
                                       |
                                       v
   OpenAI Responses API + GPT-5.6 structured outputs (server key only)
@@ -40,7 +43,7 @@ Person's two routes + priorities + horizon
 
 ## Deployment topology
 
-Vercel detects the Vite application and serves `dist` as the client build. It also deploys `api/atlas.ts` as a Node serverless function. `OPENAI_API_KEY` is configured in Vercel project environment variables for Preview/Production and must never be a `VITE_` variable. No `vercel.json` is needed for this single function and SPA because the UI has no client-side route rewrite requirement.
+Vercel detects the Vite application and serves `dist` as the client build. It also deploys `api/atlas.ts` and `api/judge-access.ts` as Node serverless functions. `OPENAI_API_KEY`, `JUDGE_ACCESS_CODE_HASH`, and `JUDGE_SESSION_SECRET` are configured in Vercel project environment variables for Preview/Production and must never be `VITE_` variables. No `vercel.json` is needed for these functions and SPA because the UI has no client-side route rewrite requirement.
 
 ## Contract and safety rules
 

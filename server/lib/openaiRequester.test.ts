@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AtlasInput } from '../../src/lib/futureMap'
-import { createOpenAIRequester } from './openaiRequester'
+import { createLiveOpenAIRequester, createOpenAIRequester, LiveMappingConfigurationError } from './openaiRequester'
 
 const input: AtlasInput = {
   options: ['Keep the team role', 'Take the studio role'],
@@ -31,11 +31,16 @@ describe('createOpenAIRequester', () => {
     expect(parse.mock.calls[0][0]).toMatchObject({ model: 'gpt-5.6' })
     expect(JSON.stringify(parse.mock.calls[0][0])).toContain('must not recommend')
     expect(JSON.stringify(parse.mock.calls[0][0])).toContain('one known item for each route')
+    expect(JSON.stringify(parse.mock.calls[0][0])).not.toContain('"items":[{')
   })
 
   it('rejects a response with no parsed structured output', async () => {
     const requester = createOpenAIRequester({ responses: { parse: vi.fn().mockResolvedValue({ output_parsed: null }) } })
 
     await expect(requester(input)).rejects.toThrow('did not return structured map data')
+  })
+
+  it('uses a typed error when the server-only API key is absent', () => {
+    expect(() => createLiveOpenAIRequester('')).toThrow(LiveMappingConfigurationError)
   })
 })
