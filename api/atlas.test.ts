@@ -43,4 +43,18 @@ describe('handleAtlasRequest', () => {
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({ error: 'Live mapping is not configured.' })
   })
+
+  it('logs a provider failure server-side while keeping the response safe', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    const response = await handleAtlasRequest(request(input), async () => { throw new Error('Structured output schema rejected') })
+
+    expect(response.status).toBe(502)
+    await expect(response.json()).resolves.toEqual({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' })
+    expect(errorSpy).toHaveBeenCalledWith('Choice Atlas live mapping failed', {
+      name: 'Error',
+      message: 'Structured output schema rejected',
+    })
+    errorSpy.mockRestore()
+  })
 })

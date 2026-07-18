@@ -8,6 +8,13 @@ function json(body: unknown, status = 200) {
   return Response.json(body, { status, headers: responseHeaders })
 }
 
+function logMappingFailure(error: unknown) {
+  const details = error instanceof Error
+    ? { name: error.name, message: error.message }
+    : { name: 'UnknownError', message: 'The provider threw a non-Error value.' }
+  console.error('Choice Atlas live mapping failed', details)
+}
+
 export async function handleAtlasRequest(request: Request, requestMap?: MapRequester): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405)
 
@@ -23,6 +30,7 @@ export async function handleAtlasRequest(request: Request, requestMap?: MapReque
     return json(map)
   } catch (error) {
     if (error instanceof Error && error.message === 'OPENAI_API_KEY is not configured') return json({ error: 'Live mapping is not configured.' }, 503)
+    logMappingFailure(error)
     return json({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' }, 502)
   }
 }
