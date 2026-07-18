@@ -11,12 +11,12 @@ const validMap = {
   version: '1.0',
   input: validInput,
   framing: 'Two viable routes with different conditions.',
-  knowns: [{ id: 'offer', label: 'An offer exists', detail: 'The role is concrete.', status: 'known', option: 'b' }],
-  assumptions: [{ id: 'fit', label: 'The work will fit', detail: 'This needs investigation.', status: 'assumption', option: 'b' }],
-  unknowns: [{ id: 'day', label: 'Ordinary days', detail: 'This cannot be inferred.', status: 'unknown', option: 'b' }],
-  tradeoffs: [{ id: 'tension', label: 'Continuity ↔ reinvention', detail: 'Both routes cost something.', status: 'assumption', option: 'shared' }],
-  questionsToInvestigate: [{ id: 'question', label: 'Shadow a workday', detail: 'Observe the lived rhythm.', status: 'unknown', option: 'b' }],
-  notYet: { id: 'not-yet', label: 'Run a field test', detail: 'Gather lived evidence.', status: 'unknown', option: 'shared' },
+  knowns: [{ id: 'offer', label: 'An offer exists', detail: 'The role is concrete.', status: 'known', option: 'b', priority: null }],
+  assumptions: [{ id: 'fit', label: 'The work will fit', detail: 'This needs investigation.', status: 'assumption', option: 'b', priority: null }],
+  unknowns: [{ id: 'day', label: 'Ordinary days', detail: 'This cannot be inferred.', status: 'unknown', option: 'b', priority: null }],
+  tradeoffs: [{ id: 'tension', label: 'Continuity ↔ reinvention', detail: 'Both routes cost something.', status: 'assumption', option: 'shared', priority: null }],
+  questionsToInvestigate: [{ id: 'question', label: 'Shadow a workday', detail: 'Observe the lived rhythm.', status: 'unknown', option: 'b', priority: null }],
+  notYet: { id: 'not-yet', label: 'Run a field test', detail: 'Gather lived evidence.', status: 'unknown', option: 'shared', priority: null },
   limitations: 'This organizes information and does not recommend a choice.',
 }
 

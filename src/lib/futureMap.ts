@@ -19,12 +19,12 @@ export const AtlasItemSchema = z.object({
   label: TextSchema,
   detail: TextSchema,
   status: EvidenceStatusSchema,
-  option: z.enum(['a', 'b', 'shared']).optional(),
-  priority: z.string().trim().min(1).max(64).optional(),
+  option: z.enum(['a', 'b', 'shared']).nullable(),
+  priority: z.string().trim().min(1).max(64).nullable(),
 }).strict()
 export type AtlasItem = z.infer<typeof AtlasItemSchema>
 
-export const FutureMapSchema = z.object({
+export const FutureMapResponseSchema = z.object({
   version: z.literal('1.0'),
   input: AtlasInputSchema,
   framing: TextSchema,
@@ -35,7 +35,9 @@ export const FutureMapSchema = z.object({
   questionsToInvestigate: z.array(AtlasItemSchema),
   notYet: AtlasItemSchema,
   limitations: TextSchema,
-}).strict().superRefine((map, context) => {
+}).strict()
+
+export const FutureMapSchema = FutureMapResponseSchema.superRefine((map, context) => {
   const expectedStatuses = [
     ['knowns', map.knowns, 'known'],
     ['assumptions', map.assumptions, 'assumption'],
@@ -89,6 +91,6 @@ export const presetFutureMap: FutureMap = {
     { id: 'q2', label: 'Price the first six months in Berlin, including a buffer.', detail: 'Make the runway legible before it has to carry emotion.', status: 'unknown', option: 'b', priority: 'Financial runway' },
     { id: 'q3', label: 'Name the rituals that make Perth feel like yours.', detail: 'Distinguish a place from the relationships you would carry forward.', status: 'unknown', option: 'a', priority: 'Belonging' },
   ],
-  notYet: { id: 'not-yet', label: 'Not yet: choose a one-week field test', detail: 'Before choosing a route, gather one piece of lived evidence that changes the map.', status: 'unknown', option: 'shared' },
+  notYet: { id: 'not-yet', label: 'Not yet: choose a one-week field test', detail: 'Before choosing a route, gather one piece of lived evidence that changes the map.', status: 'unknown', option: 'shared', priority: null },
   limitations: 'This atlas organizes the information you provide. It does not know your future, predict outcomes, or recommend a choice.',
 }

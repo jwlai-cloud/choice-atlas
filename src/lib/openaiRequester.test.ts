@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { AtlasInput } from './futureMap'
-import { generateFutureMap } from './atlasService'
+import { createOpenAIRequester } from './openaiRequester'
 
 const input: AtlasInput = {
   options: ['Keep the team role', 'Take the studio role'],
@@ -21,23 +21,20 @@ const validMap = {
   limitations: 'This organizes information and does not recommend a choice.',
 }
 
-describe('generateFutureMap', () => {
-  it('returns only a model response that passes the FutureMap runtime contract', async () => {
-    const requestMap = vi.fn().mockResolvedValue(validMap)
+describe('createOpenAIRequester', () => {
+  it('asks GPT-5.6 for a structured, non-recommendation FutureMap', async () => {
+    const parse = vi.fn().mockResolvedValue({ output_parsed: validMap })
+    const requester = createOpenAIRequester({ responses: { parse } })
 
-    await expect(generateFutureMap(input, requestMap)).resolves.toEqual(validMap)
-    expect(requestMap).toHaveBeenCalledWith(input)
+    await expect(requester(input)).resolves.toEqual(validMap)
+    expect(parse).toHaveBeenCalledOnce()
+    expect(parse.mock.calls[0][0]).toMatchObject({ model: 'gpt-5.6' })
+    expect(JSON.stringify(parse.mock.calls[0][0])).toContain('must not recommend')
   })
 
-  it('rejects unvalidated model output instead of passing it to the UI', async () => {
-    const requestMap = vi.fn().mockResolvedValue({ ...validMap, recommendation: 'Take the studio role.' })
+  it('rejects a response with no parsed structured output', async () => {
+    const requester = createOpenAIRequester({ responses: { parse: vi.fn().mockResolvedValue({ output_parsed: null }) } })
 
-    await expect(generateFutureMap(input, requestMap)).rejects.toThrow()
-  })
-
-  it('rejects a model response that changes the original decision input', async () => {
-    const requestMap = vi.fn().mockResolvedValue({ ...validMap, input: { ...input, horizon: '3 years' } })
-
-    await expect(generateFutureMap(input, requestMap)).rejects.toThrow('does not match the original input')
+    await expect(requester(input)).rejects.toThrow('did not return structured map data')
   })
 })

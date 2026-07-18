@@ -9,5 +9,7 @@ export type MapRequester = (input: AtlasInput) => Promise<unknown>
 export async function generateFutureMap(input: unknown, requestMap: MapRequester): Promise<FutureMap> {
   const validatedInput = parseAtlasInput(input)
   const modelOutput = await requestMap(validatedInput)
-  return parseFutureMap(modelOutput)
+  const map = parseFutureMap(modelOutput)
+  if (JSON.stringify(map.input) !== JSON.stringify(validatedInput)) throw new Error('Model map input does not match the original input')
+  return map
 }
