@@ -142,6 +142,7 @@ export default function App() {
   }
 
   async function unlockLiveMapping() {
+    if (isUnlocking) return
     if (!judgeCode.trim()) { setJudgeNotice('Enter the judge access code to unlock live mapping.'); return }
     setIsUnlocking(true)
     try {
@@ -181,7 +182,7 @@ export default function App() {
       <fieldset className="horizon-field"><legend>Time horizon</legend><div>{(['3 months', '1 year', '3 years'] as const).map(h => <label key={h}><input type="radio" checked={horizon === h} onChange={() => setHorizon(h)} name="horizon"/><span>{h}</span></label>)}</div></fieldset>
       <div className={`judge-access ${judgeAuthorized ? 'unlocked' : ''}`}>
         <div><span className="judge-kicker">Live demo access</span><p>{judgeAuthorized ? 'GPT-5.6 mapping unlocked' : 'Judge access code required for live GPT mapping'}</p></div>
-        {judgeAuthorized ? <span className="judge-state">Unlocked</span> : <div className="judge-entry"><label><span className="sr-only">Judge access code</span><input type="password" value={judgeCode} onChange={e => setJudgeCode(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') unlockLiveMapping() }} autoComplete="off" placeholder="Enter access code" aria-describedby="judge-notice" /></label><button type="button" onClick={unlockLiveMapping} disabled={isUnlocking}>{isUnlocking ? 'Checking…' : 'Unlock'}</button></div>}
+        {judgeAuthorized ? <span className="judge-state">Unlocked</span> : <div className="judge-entry"><label><span className="sr-only">Judge access code</span><input type="password" value={judgeCode} onChange={e => setJudgeCode(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') unlockLiveMapping() }} autoComplete="off" placeholder="Enter access code" aria-describedby="judge-notice" disabled={isUnlocking} /></label><button type="button" onClick={unlockLiveMapping} disabled={isUnlocking}>{isUnlocking ? 'Checking…' : 'Unlock'}</button></div>}
         <p id="judge-notice" className="judge-notice" role="status">{judgeNotice}</p>
       </div>
       <button className="map-button" onClick={mapInputs} disabled={isMapping}>{isMapping ? 'Mapping terrain…' : 'Map the uncertainty'} <Icon name="arrow" /></button>

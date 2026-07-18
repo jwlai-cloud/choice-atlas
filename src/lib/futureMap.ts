@@ -17,7 +17,7 @@ export type AtlasInput = z.infer<typeof AtlasInputSchema>
 // OpenAI Structured Outputs requires an array's `items` schema to be a single
 // schema object. Keep the tuple only at the internal validation boundary.
 const FutureMapResponseInputSchema = AtlasInputSchema.extend({
-  options: z.array(RouteSchema).min(2).max(2),
+  options: z.array(RouteSchema).length(2),
 })
 
 export const AtlasItemSchema = z.object({

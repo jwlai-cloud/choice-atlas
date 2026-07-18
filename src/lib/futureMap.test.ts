@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAtlasInput, parseFutureMap } from './futureMap'
+import { FutureMapResponseSchema, parseAtlasInput, parseFutureMap } from './futureMap'
 
 const validInput = {
   options: ['Keep the team role', 'Take the studio role'],
@@ -31,6 +31,11 @@ describe('parseAtlasInput', () => {
 
   it('rejects more than three priorities', () => {
     expect(() => parseAtlasInput({ ...validInput, priorities: ['One', 'Two', 'Three', 'Four'] })).toThrow()
+  })
+
+  it('requires exactly two options in model-facing structured output', () => {
+    expect(FutureMapResponseSchema.safeParse({ ...validMap, input: { ...validInput, options: ['One route'] } }).success).toBe(false)
+    expect(FutureMapResponseSchema.safeParse({ ...validMap, input: { ...validInput, options: ['One route', 'Two route', 'Three route'] } }).success).toBe(false)
   })
 })
 
