@@ -1,51 +1,37 @@
 # Tech breakdown — what we used and why
 
-## React
+## React, Vite, CSS, and SVG
 
-**What it actually does:** React renders the interface from component state. In Choice Atlas, `useState` holds the two route labels, selected priorities, horizon, and the currently focused landmark; `useMemo` finds the corresponding evidence detail.
+**What it does:** React holds the two options, priorities, horizon, mapping state, and focused landmark. Vite serves and bundles the client. CSS and inline SVG create the paper, route, contour, fog, and priority treatments without generated images or a 3D scene.
 
-**Why we chose it over alternatives:** It is a compact way to make the static prototype genuinely interactive while keeping all presentational logic in one small client application. See [ADR 0001](adr/0001-static-preset-before-model-integration.md) for why this interaction is not coupled to a model yet.
+**Why this fit:** The project needed one explorable landscape, not a slideshow. SVG stays crisp on mobile, remains accessible when semantic controls sit over it, and supports reduced-motion treatment. Vite keeps the client artifact lean while Vercel supplies the one serverless function the live path needs.
 
-**The specific parts we used:** `useState`, `useMemo`, `StrictMode`, and `createRoot`.
+**Useful sources:** [React state](https://react.dev/reference/react/useState), [Vite guide](https://vite.dev/guide/), [MDN SVG](https://developer.mozilla.org/docs/Web/SVG), and [reduced motion](https://developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion).
 
-**What surprised us / what we'd tell someone learning this for the first time:** Interactivity does not need a backend. The important boundary is to avoid letting convenient UI state masquerade as personalized analysis.
+## TypeScript, Zod, and the FutureMap contract
 
-**Primary sources used while building this:**
+**What it does:** TypeScript gives the interface compile-time guidance; Zod verifies untrusted request and model JSON at runtime. `FutureMapSchema` is strict, categorises evidence by status, and has no recommendation field.
 
-- [React documentation](https://react.dev/learn) — component state and rendering model.
-- [React `useState` reference](https://react.dev/reference/react/useState) — local interactive state.
+**Why this fit:** A model response is external input. A static TypeScript interface alone cannot stop malformed JSON or unrequested fields from reaching a judge-facing UI. Centralising the contract lets the static fallback, endpoint, and live map share a single shape.
 
----
+**What we learned:** OpenAI's Zod structured-output helper requires object properties to be represented as required. Values that are logically optional need to be nullable in the schema instead. That surfaced immediately in a mocked request test and is now explicit for `option` and `priority`.
 
-## TypeScript and FutureMap
+**Useful sources:** [Zod](https://zod.dev/), [TypeScript handbook](https://www.typescriptlang.org/docs/handbook/intro.html), and OpenAI's [structured outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
-**What it actually does:** TypeScript checks the shape of the app’s data before it reaches the UI. `FutureMap` describes the result a future server route must return, and the static preset proves the UI can render that shape.
+## OpenAI Responses API and GPT-5.6
 
-**Why we chose it over alternatives:** A shared contract reduces the chance that a later model integration quietly introduces predictions or recommendation fields the product must not expose.
+**What it does:** The Vercel function uses `openai.responses.parse` with `zodTextFormat`. GPT-5.6 returns a parsed value that still passes through Choice Atlas's own service validation before rendering.
 
-**The specific parts we used:** string unions for evidence state and horizon; interfaces for `AtlasInput`, `AtlasItem`, and `FutureMap`; `tsc -b` for type checking.
+**Why this fit:** Structured outputs are a better boundary for this product than free-form prose: the model can supply classifications and investigate-next questions while the product contract preserves the no-prediction/no-recommendation rule.
 
-**What surprised us / what we'd tell someone learning this for the first time:** Types do not validate live JSON at runtime. Before calling a model, this contract still needs a runtime schema validator and tests.
+**What we learned:** The prompt is necessary but not sufficient. Prompt constraints steer behavior; strict runtime parsing and a source-labelled fallback contain failures when a response is missing, malformed, or unavailable.
 
-**Primary sources used while building this:**
+**Useful sources:** [OpenAI structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs) and [GPT-5.6 guidance](https://developers.openai.com/api/docs/guides/model-guidance?model=gpt-5.6).
 
-- [TypeScript handbook](https://www.typescriptlang.org/docs/handbook/intro.html) — type-system concepts.
-- [TypeScript narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html) — safe discriminated data handling.
+## Vercel Functions
 
----
+**What it does:** `api/atlas.ts` receives POST requests and reads `OPENAI_API_KEY` only from its server environment. Vercel serves the built client separately from this function.
 
-## Vite and CSS/SVG
+**Why this fit:** It preserves the simple Vite client while moving the one secret-bearing operation off-device. It is a direct deployment target for the hackathon demo without committing a key or building a separate long-running backend.
 
-**What it actually does:** Vite serves the local React app during development and bundles it for static production delivery. CSS and inline SVG create the paper, contour, route, fog, and focus effects without generated imagery or a 3D asset pipeline.
-
-**Why we chose it over alternatives:** It keeps iteration fast and the visual artifact lightweight, while preserving responsive and reduced-motion behavior.
-
-**The specific parts we used:** the React Vite plugin, `npm run dev`, `npm run build`, CSS media queries, `prefers-reduced-motion`, SVG paths, gradients, and filters.
-
-**What surprised us / what we'd tell someone learning this for the first time:** SVG is a strong middle ground for art-directed interaction: it stays crisp, semantic UI can sit above it, and its motion can remain meaningful instead of ornamental.
-
-**Primary sources used while building this:**
-
-- [Vite guide](https://vite.dev/guide/) — local development and production build workflow.
-- [MDN: SVG](https://developer.mozilla.org/docs/Web/SVG) — vector graphics primitives.
-- [MDN: `prefers-reduced-motion`](https://developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion) — accessible motion fallback.
+**Useful source:** [Vercel Functions](https://vercel.com/docs/functions).

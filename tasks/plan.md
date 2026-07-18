@@ -29,32 +29,32 @@ React request state + browser verification
 
 ### Phase 1: Foundation
 
-- [ ] Task 1: Install the test/validation/runtime dependencies and define test commands.
-- [ ] Task 2: Add runtime schemas and pure validation tests for `AtlasInput` and `FutureMap`.
+- [x] Task 1: Install the test/validation/runtime dependencies and define test commands.
+- [x] Task 2: Add runtime schemas and pure validation tests for `AtlasInput` and `FutureMap`.
 
 ### Checkpoint: Foundation
 
-- [ ] Unit tests fail before implementation, pass after it, and `npm run build` remains clean.
+- [x] Unit tests fail before implementation, pass after it, and `npm run build` remains clean.
 
 ### Phase 2: Live service slice
 
-- [ ] Task 3: Implement the isolated OpenAI generation service with mocked-boundary tests.
-- [ ] Task 4: Implement the Vercel `POST /api/atlas` handler and endpoint tests for success, malformed input, unavailable key, and invalid provider output.
+- [x] Task 3: Implement the isolated OpenAI generation service with mocked-boundary tests.
+- [x] Task 4: Implement the Vercel `POST /api/atlas` handler and endpoint tests for success, malformed input, unavailable key, and invalid provider output.
 
 ### Checkpoint: Service
 
-- [ ] No request can return unvalidated output or a recommendation field.
-- [ ] The API key is referenced only in server code.
+- [x] No request can return unvalidated output or a recommendation field.
+- [x] The API key is referenced only in server code.
 
 ### Phase 3: User-facing integration
 
-- [ ] Task 5: Connect the map action to `/api/atlas`, expose accessible loading/error/fallback state, and render the live map.
-- [ ] Task 6: Verify the browser flow and document Vercel environment setup and demo narrative.
+- [x] Task 5: Connect the map action to `/api/atlas`, expose accessible loading/error/fallback state, and render the live map.
+- [x] Task 6: Verify the browser flow and document Vercel environment setup and demo narrative.
 
 ### Checkpoint: Complete
 
-- [ ] Tests, type check, production build, and browser verification pass.
-- [ ] Commits are pushed to `dev`, PR checks are reviewed, and docs reflect the deployed architecture.
+- [x] Tests, type check, production build, and browser fallback verification pass.
+- [ ] Final commits are pushed to `dev`, PR checks are reviewed, and docs reflect the deployed architecture.
 
 ## Risks and mitigations
 
@@ -67,4 +67,4 @@ React request state + browser verification
 
 ## Open questions
 
-- Await a Codex restart to activate the installed OpenAI Docs MCP connector, then verify the exact GPT-5.6 Responses API structured-output syntax before Task 3.
+- Live deployment verification remains after `OPENAI_API_KEY` is configured in Vercel; no Codex restart is required.

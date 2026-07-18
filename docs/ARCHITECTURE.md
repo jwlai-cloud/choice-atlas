@@ -2,41 +2,57 @@
 
 ## One-paragraph summary
 
-Choice Atlas is a client-rendered React prototype for exploring a two-option life decision without forcing a verdict. The user supplies two route labels, up to three priorities, and a horizon; the UI renders a shared SVG decision landscape backed by a typed, static `FutureMap` preset. A server-side integration seam is present for a future validated model response, but no network model call occurs today.
+Choice Atlas is a Vite + React decision landscape with a small Vercel serverless boundary for live GPT-5.6 mapping. A person enters exactly two routes, up to three priorities, and a horizon. The browser asks `POST /api/atlas` for a structured map; the server holds the API key, calls the OpenAI Responses API, and validates the result before it reaches the UI. If that live path is unavailable, the UI shows a plainly labelled illustrative preset rather than inventing personalised analysis.
 
 ## Components
 
-- `src/App.tsx` owns the intake controls, selected priority and horizon state, landmark focus state, and all presentational sections. It does not generate analysis or call a model.
-- `src/lib/futureMap.ts` defines `AtlasInput`, `AtlasItem`, and `FutureMap`, then exports the reliable static demo dataset. It intentionally has no recommendation field.
-- `src/styles.css` provides the editorial visual system, purposeful route/fog motion, responsive breakpoints, and reduced-motion fallback. It does not contain decision logic.
-- `server/routes/atlas.ts` is a server-only seam for a future `POST /api/atlas` implementation. It currently throws rather than pretending a provider is configured.
-- `.github/workflows/enforce-main-source.yml` checks that pull requests targeting `main` originate from `dev`.
+- `src/App.tsx` owns intake, loading, map-source, focus, and fallback state, then renders one shared SVG landscape.
+- `src/lib/futureMap.ts` contains the Zod input/output schemas, TypeScript types, and deterministic preset. The schema rejects extra fields such as a recommendation.
+- `src/lib/atlasClient.ts` is the browser-facing `fetch` wrapper for `/api/atlas`; it parses responses and surfaces safe errors.
+- `src/lib/atlasService.ts` is the provider-independent boundary. It validates input, validates model output, and checks that returned input matches the original request.
+- `src/lib/openaiRequester.ts` is server-only. It uses the OpenAI SDK Responses API with GPT-5.6 and Zod structured output; it reads `OPENAI_API_KEY` only from the server environment.
+- `api/atlas.ts` is the Vercel `POST /api/atlas` function. It turns malformed input into `400`, absent configuration into `503`, and invalid/provider output into `502` without disclosing secrets.
+- `server/routes/atlas.ts` remains a compatibility facade for server consumers and delegates to the same validated service.
+- `src/styles.css` provides the responsive editorial presentation and reduced-motion fallback. It contains no model logic.
 
 ## Data flow
 
-1. Person → enters exactly two route labels, selects zero to three priorities, and selects a horizon.
-2. React intake controls → update local component state.
-3. Person → activates “Map the uncertainty.”
-4. App → confirms both labels exist, updates the static-demo status, and renders labels, priority emphasis, and horizon in the landscape.
-5. App → reads `presetFutureMap` to render knowns, assumptions, unknowns, trade-offs, questions, and the Not yet field test.
-6. Person → focuses or hovers a landmark; App → reveals the corresponding typed detail in the reading panel.
-7. Future only: server route → accepts `AtlasInput`, calls an approved model, validates output against `FutureMap`, and returns only classification and question data.
-
-## External dependencies
-
-- React and React DOM provide client rendering and local state.
-- Vite provides development serving and production bundling.
-- TypeScript provides compile-time checking.
-- Google Fonts are loaded by CSS for the current editorial type treatment.
-- No model provider, database, analytics platform, or deployment host is configured.
+```text
+Person's two routes + priorities + horizon
+                 |
+                 v
+ React intake -> atlasClient -> POST /api/atlas (Vercel Function)
+                                      |
+                                      v
+  OpenAI Responses API + GPT-5.6 structured outputs (server key only)
+                                      |
+                                      v
+      Zod FutureMap validation + original-input integrity check
+                                      |
+                         +------------+------------+
+                         |                         |
+                         v                         v
+              Live GPT-5.6 map          labelled illustrative fallback
+                         \                         /
+                          v                       v
+                        one explorable decision landscape
+```
 
 ## Deployment topology
 
-No deployment is configured. Today the application runs locally through Vite and can be emitted as static assets with `npm run build`. A future model route requires a server-capable host and a server-side secret store; it must not be deployed as client-only code with a browser-exposed API key.
+Vercel detects the Vite application and serves `dist` as the client build. It also deploys `api/atlas.ts` as a Node serverless function. `OPENAI_API_KEY` is configured in Vercel project environment variables for Preview/Production and must never be a `VITE_` variable. No `vercel.json` is needed for this single function and SPA because the UI has no client-side route rewrite requirement.
+
+## Contract and safety rules
+
+- Input is exactly two distinct, non-empty route labels, up to three distinct priorities, and one allowed horizon.
+- `FutureMap` has only framing, evidence, trade-offs, questions, `notYet`, and limitations. Its strict Zod schema rejects undeclared recommendation-like fields.
+- The system instructions forbid choosing, ranking, optimising, predicting, or using directive language.
+- The UI exposes the source: live GPT map versus illustrative preset fallback.
+- A model response is not trusted because it claimed structured output; the service validates it at runtime before rendering.
 
 ## Known limitations / non-goals
 
-- The analysis content is a fixed illustrative preset; changing inputs updates only the user-controlled labels, priorities, and horizon.
-- The map does not forecast outcomes, rank options, or recommend a choice.
-- `server/routes/atlas.ts` is a stub, not an active API endpoint or response validator.
-- Automated UI and contract tests have not yet been added.
+- A model cannot determine which life choice is right; Choice Atlas is deliberately a map of uncertainty, not a decision-maker.
+- Live GPT behavior still requires a deployed Vercel project with an `OPENAI_API_KEY`; local `npm run dev` demonstrates the UI fallback only.
+- The fallback content is static and illustrative. It must not be represented as fresh model analysis.
+- The product does not store dilemmas, use a database, or perform background analysis.
