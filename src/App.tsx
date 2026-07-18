@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { presetFutureMap } from './lib/futureMap'
+import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap'
+import { requestFutureMap } from './lib/atlasClient'
 
 type Priority = 'Creative depth' | 'Belonging' | 'Financial runway'
 const priorities: Priority[] = ['Creative depth', 'Belonging', 'Financial runway']
@@ -23,21 +24,28 @@ function EvidenceMark({ type }: { type: 'known' | 'assumption' | 'unknown' }) {
   return <span className={`evidence ${type}`} aria-hidden="true"><i /></span>
 }
 
-function Landmark({ title, detail, type, side, highlighted, onFocus }: {
-  title: string; detail: string; type: 'known' | 'assumption' | 'unknown'; side: 'a' | 'b' | 'shared'; highlighted: boolean; onFocus: () => void
+function Landmark({ item, slot, side, highlighted, onFocus }: {
+  item: AtlasItem; slot: string; side: 'a' | 'b' | 'shared'; highlighted: boolean; onFocus: () => void
 }) {
-  const landmarkId = title === 'Established team' ? 'team-landmark' : title === 'Current community' ? 'community-landmark' : title === 'Studio offer' ? 'offer-landmark' : title === 'Ordinary Tuesdays' ? 'day-landmark' : 'home-landmark'
-  return <button className={`landmark ${landmarkId} ${type} ${side} ${highlighted ? 'is-highlighted' : ''}`} onFocus={onFocus} onMouseEnter={onFocus}>
-    <EvidenceMark type={type} />
-    <span><b>{title}</b><small>{detail}</small></span>
+  return <button className={`landmark ${slot} ${item.status} ${side} ${highlighted ? 'is-highlighted' : ''}`} onFocus={onFocus} onMouseEnter={onFocus}>
+    <EvidenceMark type={item.status} />
+    <span><b>{item.label}</b><small>{item.detail}</small></span>
   </button>
 }
 
-function Landscape({ activePriorities, focus, setFocus, optionA, optionB, horizon }: {
-  activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
+function Landscape({ map, activePriorities, focus, setFocus, optionA, optionB, horizon }: {
+  map: FutureMap; activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
 }) {
   const activeClasses = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
   const isFocus = (id: string) => focus === id
+  const firstFor = (items: AtlasItem[], option: 'a' | 'b' | 'shared') => items.find((item) => item.option === option) ?? items[0]
+  const landmarks = [
+    { slot: 'team-landmark', side: 'a' as const, item: firstFor(map.knowns, 'a') },
+    { slot: 'community-landmark', side: 'a' as const, item: firstFor(map.assumptions, 'a') },
+    { slot: 'offer-landmark', side: 'b' as const, item: firstFor(map.knowns, 'b') },
+    { slot: 'day-landmark', side: 'b' as const, item: firstFor(map.unknowns, 'b') },
+    { slot: 'home-landmark', side: 'shared' as const, item: firstFor(map.unknowns, 'shared') },
+  ].filter((landmark): landmark is { slot: string; side: 'a' | 'b' | 'shared'; item: AtlasItem } => Boolean(landmark.item))
   return <section className={`landscape ${activeClasses}`} aria-label="Explorable uncertainty map">
     <div className="map-key" aria-label="Map legend">
       <span><EvidenceMark type="known" />Known</span><span><EvidenceMark type="assumption" />Assumption</span><span><EvidenceMark type="unknown" />Unknown</span>
@@ -71,11 +79,7 @@ function Landscape({ activePriorities, focus, setFocus, optionA, optionB, horizo
       <ellipse className="fog-bank two" cx="360" cy="270" rx="150" ry="100" fill="url(#fog)" filter="url(#blur)"/>
     </svg>
     <div className="map-node start"><span>Here</span><b>current conditions</b></div>
-    <Landmark title="Established team" detail="known terrain" type="known" side="a" highlighted={isFocus('team')} onFocus={() => setFocus('team')} />
-    <Landmark title="Current community" detail="assumed to hold" type="assumption" side="a" highlighted={isFocus('community')} onFocus={() => setFocus('community')} />
-    <Landmark title="Studio offer" detail="known terrain" type="known" side="b" highlighted={isFocus('offer')} onFocus={() => setFocus('offer')} />
-    <Landmark title="Ordinary Tuesdays" detail="unseen terrain" type="unknown" side="b" highlighted={isFocus('day')} onFocus={() => setFocus('day')} />
-    <Landmark title="Where home gathers" detail="unseen terrain" type="unknown" side="shared" highlighted={isFocus('roots')} onFocus={() => setFocus('roots')} />
+    {landmarks.map((landmark) => <Landmark key={`${landmark.slot}-${landmark.item.id}`} item={landmark.item} slot={landmark.slot} side={landmark.side} highlighted={isFocus(landmark.item.id)} onFocus={() => setFocus(landmark.item.id)} />)}
     <div className="compass-rose" aria-hidden="true"><Icon name="compass" /><span>uncertainty<br/>cartography</span></div>
     <div className="map-caption"><span>{horizon}</span><b>Two routes. One changing field.</b></div>
   </section>
@@ -87,8 +91,11 @@ export default function App() {
   const [selected, setSelected] = useState<Priority[]>(presetFutureMap.input.priorities as Priority[])
   const [horizon, setHorizon] = useState(presetFutureMap.input.horizon)
   const [focus, setFocus] = useState('')
+  const [futureMap, setFutureMap] = useState<FutureMap>(presetFutureMap)
+  const [mapSource, setMapSource] = useState<'preset' | 'live'>('preset')
+  const [isMapping, setIsMapping] = useState(false)
   const [notice, setNotice] = useState('Static preset map refreshed for your inputs.')
-  const focused = useMemo(() => [...presetFutureMap.knowns, ...presetFutureMap.assumptions, ...presetFutureMap.unknowns].find(x => x.id === focus), [focus])
+  const focused = useMemo(() => [...futureMap.knowns, ...futureMap.assumptions, ...futureMap.unknowns].find(x => x.id === focus), [focus, futureMap])
 
   function togglePriority(priority: Priority) {
     setSelected((current) => {
@@ -96,10 +103,23 @@ export default function App() {
       return current.length === 3 ? current : [...current, priority]
     })
   }
-  function mapInputs() {
+  async function mapInputs() {
     if (!optionA.trim() || !optionB.trim()) { setNotice('Enter both routes before mapping the terrain.'); return }
-    setNotice(`Static preset map refreshed · horizon: ${horizon}.`)
+    setIsMapping(true)
+    setNotice('Mapping the uncertainty with GPT-5.6…')
     setFocus('')
+    try {
+      const map = await requestFutureMap({ options: [optionA.trim(), optionB.trim()], priorities: selected, horizon })
+      setFutureMap(map)
+      setMapSource('live')
+      setNotice(`Live uncertainty map ready · horizon: ${horizon}.`)
+    } catch {
+      setFutureMap(presetFutureMap)
+      setMapSource('preset')
+      setNotice(`Live mapping is unavailable. Showing the illustrative preset · horizon: ${horizon}.`)
+    } finally {
+      setIsMapping(false)
+    }
   }
 
   return <main>
@@ -125,12 +145,12 @@ export default function App() {
         {priorities.map(p => <button key={p} className={`priority ${tones[p]} ${selected.includes(p) ? 'selected' : ''}`} onClick={() => togglePriority(p)} aria-pressed={selected.includes(p)}><Icon name="plus" />{p}</button>)}
       </div></fieldset>
       <fieldset className="horizon-field"><legend>Time horizon</legend><div>{(['3 months', '1 year', '3 years'] as const).map(h => <label key={h}><input type="radio" checked={horizon === h} onChange={() => setHorizon(h)} name="horizon"/><span>{h}</span></label>)}</div></fieldset>
-      <button className="map-button" onClick={mapInputs}>Map the uncertainty <Icon name="arrow" /></button>
+      <button className="map-button" onClick={mapInputs} disabled={isMapping}>{isMapping ? 'Mapping terrain…' : 'Map the uncertainty'} <Icon name="arrow" /></button>
       <p className="form-notice" role="status">{notice}</p>
     </section>
     <section className="atlas-section" id="atlas" aria-labelledby="atlas-title">
-      <div className="atlas-heading"><p className="eyebrow">02 / Read the field</p><h2 id="atlas-title">Your decision landscape</h2><p>{presetFutureMap.framing}</p></div>
-      <Landscape activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
+      <div className="atlas-heading"><p className="eyebrow">02 / Read the field</p><h2 id="atlas-title">Your decision landscape</h2><p>{futureMap.framing}</p><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset fallback'}</span></div>
+      <Landscape map={futureMap} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
       <aside className="reading-panel" aria-live="polite">
         <div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'Legend'}</span>{focused && <EvidenceMark type={focused.status} />}</div>
         {focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>The map holds three kinds of information.</h3><p><b>Known</b> things are clear. <b>Assumptions</b> are visible, but porous. <b>Unknowns</b> sit in the fog—an invitation to look, not a gap to fill.</p></>}
@@ -138,15 +158,15 @@ export default function App() {
     </section>
     <section className="tradeoffs" aria-labelledby="tradeoffs-title">
       <div><p className="eyebrow">03 / Name the tensions</p><h2 id="tradeoffs-title">Trade-offs are not failures of analysis.</h2></div>
-      <div className="tension-lines">{presetFutureMap.tradeoffs.map((t, i) => <article key={t.id} className={`tension tension-${i + 1}`}><span>↔</span><div><h3>{t.label}</h3><p>{t.detail}</p></div></article>)}</div>
+      <div className="tension-lines">{futureMap.tradeoffs.map((t, i) => <article key={t.id} className={`tension tension-${i + 1}`}><span>↔</span><div><h3>{t.label}</h3><p>{t.detail}</p></div></article>)}</div>
     </section>
     <section className="questions" aria-labelledby="questions-title">
       <div className="questions-heading"><p className="eyebrow"><Icon name="spark" /> 04 / Make the fog useful</p><h2 id="questions-title">Questions that could change the map.</h2><p>Not research for certainty—fieldwork for a more honest next step.</p></div>
-      <ol>{presetFutureMap.questionsToInvestigate.map((q, i) => <li key={q.id}><span>0{i + 1}</span><div><h3>{q.label}</h3><p>{q.detail}</p></div><button aria-label={`Focus on ${q.label}`} onClick={() => { setFocus(q.id); document.getElementById('atlas')?.scrollIntoView({ behavior: 'smooth' }) }}><Icon name="arrow" /></button></li>)}</ol>
+      <ol>{futureMap.questionsToInvestigate.map((q, i) => <li key={q.id}><span>0{i + 1}</span><div><h3>{q.label}</h3><p>{q.detail}</p></div><button aria-label={`Focus on ${q.label}`} onClick={() => { setFocus(q.id); document.getElementById('atlas')?.scrollIntoView({ behavior: 'smooth' }) }}><Icon name="arrow" /></button></li>)}</ol>
     </section>
     <section className="not-yet" aria-labelledby="not-yet-title">
-      <div className="not-yet-ink"><Icon name="compass" /></div><div><p className="eyebrow">The third route</p><h2 id="not-yet-title">Not yet.</h2><p>{presetFutureMap.notYet.detail}</p></div><button onClick={() => setFocus('day')}>Find a field test <Icon name="arrow" /></button>
+      <div className="not-yet-ink"><Icon name="compass" /></div><div><p className="eyebrow">The third route</p><h2 id="not-yet-title">Not yet.</h2><p>{futureMap.notYet.detail}</p></div><button onClick={() => setFocus(futureMap.notYet.id)}>Find a field test <Icon name="arrow" /></button>
     </section>
-    <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built as a static Build Week prototype.</p></div><p><b>Important limitation:</b> {presetFutureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
+    <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built for a live Build Week demo with a preset fallback.</p></div><p><b>Important limitation:</b> {futureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
   </main>
 }
