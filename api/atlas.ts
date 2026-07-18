@@ -1,6 +1,6 @@
-import { generateFutureMap, type MapRequester } from '../server/lib/atlasService'
-import { createLiveOpenAIRequester } from '../server/lib/openaiRequester'
-import { parseAtlasInput } from '../src/lib/futureMap'
+import { generateFutureMap, type MapRequester } from '../server/lib/atlasService.js'
+import { createLiveOpenAIRequester } from '../server/lib/openaiRequester.js'
+import { parseAtlasInput } from '../src/lib/futureMap.js'
 
 const responseHeaders = { 'cache-control': 'no-store' }
 

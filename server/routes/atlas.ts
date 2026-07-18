@@ -1,6 +1,6 @@
-import { generateFutureMap } from '../lib/atlasService'
-import { createLiveOpenAIRequester } from '../lib/openaiRequester'
-import type { AtlasInput, FutureMap } from '../../src/lib/futureMap'
+import { generateFutureMap } from '../lib/atlasService.js'
+import { createLiveOpenAIRequester } from '../lib/openaiRequester.js'
+import type { AtlasInput, FutureMap } from '../../src/lib/futureMap.js'
 
 /**
  * Compatibility facade for server consumers. Vercel serves the active POST endpoint

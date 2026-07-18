@@ -1,7 +1,7 @@
 import OpenAI from 'openai'
 import { zodTextFormat } from 'openai/helpers/zod'
-import { FutureMapResponseSchema, type AtlasInput } from '../../src/lib/futureMap'
-import type { MapRequester } from './atlasService'
+import { FutureMapResponseSchema, type AtlasInput } from '../../src/lib/futureMap.js'
+import type { MapRequester } from './atlasService.js'
 
 type StructuredResponsesClient = {
   responses: {
