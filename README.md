@@ -46,7 +46,7 @@ If the service is unavailable or the output fails validation, the interface keep
    openssl rand -base64 32
    ```
 
-3. In **Project Settings → Environment Variables**, add these variables for **Preview and Production**: `OPENAI_API_KEY`, `JUDGE_ACCESS_CODE_HASH` (the hash output), and `JUDGE_SESSION_SECRET` (the final random output). Never prefix them with `VITE_` and never commit them.
+3. In **Project Settings → Environment Variables**, add these variables for **Preview and Production**: `OPENAI_API_KEY`, `JUDGE_ACCESS_CODE_HASH` (only the 64-character digest at the start of the `shasum` output), and `JUDGE_SESSION_SECRET` (the final random output). Never prefix them with `VITE_` and never commit them.
 4. Deploy. Vercel builds the Vite client into `dist` and exposes `api/atlas.ts` and `api/judge-access.ts` as server-side functions.
 5. On the deployment URL, enter the judge code in **Live demo access**, then enter two distinct routes and press **Map the uncertainty**. A live success labels the map “Live GPT-5.6 mapping”; an outage or missing configuration shows “Illustrative preset fallback”.
 
