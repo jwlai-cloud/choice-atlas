@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { handleAtlasRequest, type AccessChecker } from './atlas'
 import { presetFutureMap } from '../src/lib/futureMap'
+import { LiveMappingConfigurationError } from '../server/lib/openaiRequester'
 
 const input = {
   options: ['Keep the team role', 'Take the studio role'],
@@ -40,7 +41,7 @@ describe('handleAtlasRequest', () => {
   })
 
   it('reports an unavailable live service without exposing internal errors', async () => {
-    const response = await handleAtlasRequest(request(input), async () => { throw new Error('OPENAI_API_KEY is not configured') }, allowed)
+    const response = await handleAtlasRequest(request(input), async () => { throw new LiveMappingConfigurationError() }, allowed)
 
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({ error: 'Live mapping is not configured.' })
@@ -48,16 +49,19 @@ describe('handleAtlasRequest', () => {
 
   it('logs a provider failure server-side while keeping the response safe', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    try {
+      const response = await handleAtlasRequest(request(input), async () => { throw new Error('Structured output schema rejected') }, allowed)
 
-    const response = await handleAtlasRequest(request(input), async () => { throw new Error('Structured output schema rejected') }, allowed)
-
-    expect(response.status).toBe(502)
-    await expect(response.json()).resolves.toEqual({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' })
-    expect(errorSpy).toHaveBeenCalledWith('Choice Atlas live mapping failed', {
-      name: 'Error',
-      message: 'Structured output schema rejected',
-    })
-    errorSpy.mockRestore()
+      expect(response.status).toBe(502)
+      await expect(response.json()).resolves.toEqual({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' })
+      expect(errorSpy).toHaveBeenCalledWith('Choice Atlas live mapping failed', expect.objectContaining({
+        name: 'Error',
+        message: 'Structured output schema rejected',
+        stack: expect.any(String),
+      }))
+    } finally {
+      errorSpy.mockRestore()
+    }
   })
 
   it('blocks the live model before parsing input when judge access is not authorized', async () => {

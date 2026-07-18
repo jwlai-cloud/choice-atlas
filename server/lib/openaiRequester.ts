@@ -9,6 +9,13 @@ type StructuredResponsesClient = {
   }
 }
 
+export class LiveMappingConfigurationError extends Error {
+  constructor() {
+    super('OPENAI_API_KEY is not configured')
+    this.name = 'LiveMappingConfigurationError'
+  }
+}
+
 const systemInstructions = [
   'You are Choice Atlas, an uncertainty cartographer for meaningful life decisions.',
   'Analyze only the supplied two-option dilemma and return the requested FutureMap.',
@@ -37,6 +44,6 @@ export function createOpenAIRequester(client: StructuredResponsesClient): MapReq
 }
 
 export function createLiveOpenAIRequester(apiKey = process.env.OPENAI_API_KEY): MapRequester {
-  if (!apiKey) throw new Error('OPENAI_API_KEY is not configured')
+  if (!apiKey) throw new LiveMappingConfigurationError()
   return createOpenAIRequester(new OpenAI({ apiKey }) as unknown as StructuredResponsesClient)
 }

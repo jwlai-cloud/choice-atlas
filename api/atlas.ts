@@ -1,5 +1,5 @@
 import { generateFutureMap, type MapRequester } from '../server/lib/atlasService.js'
-import { createLiveOpenAIRequester } from '../server/lib/openaiRequester.js'
+import { createLiveOpenAIRequester, LiveMappingConfigurationError } from '../server/lib/openaiRequester.js'
 import { readJudgeAccess, type JudgeAccessState } from '../server/lib/judgeAccess.js'
 import { parseAtlasInput } from '../src/lib/futureMap.js'
 
@@ -11,7 +11,7 @@ function json(body: unknown, status = 200) {
 
 function logMappingFailure(error: unknown) {
   const details = error instanceof Error
-    ? { name: error.name, message: error.message }
+    ? { name: error.name, message: error.message, stack: error.stack }
     : { name: 'UnknownError', message: 'The provider threw a non-Error value.' }
   console.error('Choice Atlas live mapping failed', details)
 }
@@ -36,7 +36,7 @@ export async function handleAtlasRequest(request: Request, requestMap?: MapReque
     const map = await generateFutureMap(input, requestMap ?? createLiveOpenAIRequester())
     return json(map)
   } catch (error) {
-    if (error instanceof Error && error.message === 'OPENAI_API_KEY is not configured') return json({ error: 'Live mapping is not configured.' }, 503)
+    if (error instanceof LiveMappingConfigurationError) return json({ error: 'Live mapping is not configured.' }, 503)
     logMappingFailure(error)
     return json({ error: 'Live mapping could not return a valid uncertainty map. Try again or use the preset.' }, 502)
   }
