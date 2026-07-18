@@ -29,6 +29,10 @@ npm run preview
 
 The present UI is a preset experience: changes to user input refresh the demo state and route labels, while the analysis data remains the carefully chosen example. This makes the Build Week demo reliable and avoids pretending a static prototype has model insight.
 
+## Branch policy
+
+Work on `dev` and open pull requests into `main`. The repository's `main` protection requires a pull request, and its GitHub Action rejects pull requests that do not originate from `dev`.
+
 ## Project structure
 
 - `src/App.tsx` — accessible interactive prototype and SVG landscape
