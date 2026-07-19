@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap'
 import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
+import { buildLandscapeLandmarks, itemForOption } from './lib/briefing'
+import { demoScenarios, mappingMoments, type DemoScenario } from './lib/demoScenarios'
 
 type Priority = 'Creative depth' | 'Belonging' | 'Financial runway'
 const priorities: Priority[] = ['Creative depth', 'Belonging', 'Financial runway']
@@ -10,6 +12,7 @@ const tones: Record<Priority, string> = {
   Belonging: 'moss',
   'Financial runway': 'blue',
 }
+
 
 function Icon({ name }: { name: 'arrow' | 'plus' | 'compass' | 'spark' }) {
   const paths = {
@@ -39,14 +42,7 @@ function Landscape({ map, activePriorities, focus, setFocus, optionA, optionB, h
 }) {
   const activeClasses = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
   const isFocus = (id: string) => focus === id
-  const firstFor = (items: AtlasItem[], option: 'a' | 'b' | 'shared') => items.find((item) => item.option === option) ?? items[0]
-  const landmarks = [
-    { slot: 'team-landmark', side: 'a' as const, item: firstFor(map.knowns, 'a') },
-    { slot: 'community-landmark', side: 'a' as const, item: firstFor(map.assumptions, 'a') },
-    { slot: 'offer-landmark', side: 'b' as const, item: firstFor(map.knowns, 'b') },
-    { slot: 'day-landmark', side: 'b' as const, item: firstFor(map.unknowns, 'b') },
-    { slot: 'home-landmark', side: 'shared' as const, item: firstFor(map.unknowns, 'shared') },
-  ].filter((landmark): landmark is { slot: string; side: 'a' | 'b' | 'shared'; item: AtlasItem } => Boolean(landmark.item))
+  const landmarks = buildLandscapeLandmarks(map)
   return <section className={`landscape ${activeClasses}`} aria-label="Explorable uncertainty map">
     <div className="map-key" aria-label="Map legend">
       <span><EvidenceMark type="known" />Known</span><span><EvidenceMark type="assumption" />Assumption</span><span><EvidenceMark type="unknown" />Unknown</span>
@@ -86,6 +82,114 @@ function Landscape({ map, activePriorities, focus, setFocus, optionA, optionB, h
   </section>
 }
 
+type BriefStage = 'ground' | 'tension' | 'fieldwork' | 'landscape'
+
+const briefStages: Array<{ id: BriefStage; number: string; label: string; cue: string }> = [
+  { id: 'ground', number: '01', label: 'Ground', cue: 'what is already here' },
+  { id: 'tension', number: '02', label: 'Tension', cue: 'what pulls in two directions' },
+  { id: 'fieldwork', number: '03', label: 'Fieldwork', cue: 'what could change the map' },
+  { id: 'landscape', number: '04', label: 'Landscape', cue: 'explore the whole field' },
+]
+
+function DecisionWeather({ tension, knownA, knownB, unresolved, activePriorities }: { tension?: AtlasItem; knownA?: AtlasItem; knownB?: AtlasItem; unresolved?: AtlasItem; activePriorities: Priority[] }) {
+  const emphasis = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
+  return <figure className={`decision-weather ${emphasis}`} aria-label={`Visual first reading: ${tension?.label ?? 'two routes in tension'}`}>
+    <svg viewBox="0 0 1000 470" role="img" aria-hidden="true">
+      <defs>
+        <filter id="weatherBlur"><feGaussianBlur stdDeviation="22" /></filter>
+        <radialGradient id="weatherGlow"><stop stopColor="#f8f4e8" stopOpacity=".95" /><stop offset="1" stopColor="#f8f4e8" stopOpacity="0" /></radialGradient>
+        <linearGradient id="weatherWash" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#dce4d8" /><stop offset="1" stopColor="#ece3d9" /></linearGradient>
+      </defs>
+      <rect width="1000" height="470" fill="url(#weatherWash)" />
+      <g className="weather-contours"><path d="M-40 110C90 27 198 48 286 151c87 102 183 88 260 7 75-80 177-93 276-16 73 57 140 48 220-10" /><path d="M-40 149c136-78 226-43 304 55 79 99 190 74 267-7 83-88 190-88 285-7 76 65 149 50 227-9" /><path d="M-40 194c139-73 248-39 325 61 75 98 193 75 272-11 77-85 189-86 283-6 79 67 144 49 202-8" /></g>
+      <path className="weather-route weather-route-a" d="M92 416C164 337 214 303 314 270c90-30 128-72 181-140" />
+      <path className="weather-route weather-route-b" d="M908 416c-75-80-127-113-224-147-88-31-124-70-179-139" />
+      <path className="weather-ridge" d="M-10 275c136-98 247-65 339 14 84 72 183 63 259-17 79-83 187-74 271-11 62 47 105 39 151 9" />
+      <ellipse className="weather-fog weather-fog-a" cx="300" cy="144" rx="148" ry="85" fill="url(#weatherGlow)" filter="url(#weatherBlur)" />
+      <ellipse className="weather-fog weather-fog-b" cx="727" cy="155" rx="164" ry="91" fill="url(#weatherGlow)" filter="url(#weatherBlur)" />
+      <circle className="weather-core" cx="500" cy="218" r="30" />
+      <circle className="weather-core-ring" cx="500" cy="218" r="49" />
+      <circle className="weather-star weather-star-a" cx="245" cy="307" r="9" />
+      <circle className="weather-star weather-star-b" cx="757" cy="306" r="9" />
+    </svg>
+    <div className="weather-core-label"><span>the pull</span><b>{tension?.label ?? 'Two live routes'}</b></div>
+    <div className="weather-marker weather-marker-a"><span>Route A / known</span><b>{knownA?.label ?? 'Conditions to confirm'}</b></div>
+    <div className="weather-marker weather-marker-b"><span>Route B / known</span><b>{knownB?.label ?? 'Conditions to confirm'}</b></div>
+    <figcaption><EvidenceMark type="unknown" /><span>Leave open</span><b>{unresolved?.label ?? 'The lived experience of each route'}</b></figcaption>
+  </figure>
+}
+
+function MappingProgress({ moment }: { moment: number }) {
+  const [title, detail] = mappingMoments[moment % mappingMoments.length]
+  return <div className="mapping-progress" role="status" aria-live="polite" aria-busy="true">
+    <div className="mapping-orbit" aria-hidden="true"><i /><i /><i /></div>
+    <div><p>GPT-5.6 is drawing the field</p><h3>{title}</h3><span>{detail}</span></div>
+    <small>Live structured map · can take a moment</small>
+  </div>
+}
+
+function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, optionA, optionB, horizon }: {
+  map: FutureMap; mapSource: 'preset' | 'live'; activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
+}) {
+  const [stage, setStage] = useState<BriefStage>('ground')
+  const [tradeoffIndex, setTradeoffIndex] = useState(0)
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const knownA = itemForOption(map.knowns, 'a')
+  const knownB = itemForOption(map.knowns, 'b')
+  const unresolved = map.unknowns[0]
+  const tradeoff = map.tradeoffs[tradeoffIndex % Math.max(map.tradeoffs.length, 1)]
+  const question = map.questionsToInvestigate[questionIndex % Math.max(map.questionsToInvestigate.length, 1)]
+  const selectedStage = briefStages.find((item) => item.id === stage) ?? briefStages[0]
+  const focused = [...map.knowns, ...map.assumptions, ...map.unknowns].find((item) => item.id === focus)
+  const headlineTension = map.tradeoffs[0]
+
+  useEffect(() => {
+    setStage('ground')
+    setTradeoffIndex(0)
+    setQuestionIndex(0)
+  }, [map])
+
+  function cycleTradeoff(direction: -1 | 1) {
+    setTradeoffIndex((current) => (current + direction + map.tradeoffs.length) % map.tradeoffs.length)
+  }
+
+  function cycleQuestion(direction: -1 | 1) {
+    setQuestionIndex((current) => (current + direction + map.questionsToInvestigate.length) % map.questionsToInvestigate.length)
+  }
+
+  return <section className="decision-briefing" id="atlas" aria-labelledby="briefing-title">
+    <header className="briefing-header">
+      <div><p className="eyebrow">02 / Your decision briefing</p><h2 id="briefing-title">Start with what matters.<br/><em>Then widen the view.</em></h2></div>
+      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p>{headlineTension && <div className="brief-keyline"><span>First read</span><b>{headlineTension.label}</b></div>}</div>
+    </header>
+    <div className="brief-progress" role="tablist" aria-label="Decision briefing stages">
+      {briefStages.map((item) => <button key={item.id} id={`brief-tab-${item.id}`} role="tab" aria-selected={stage === item.id} aria-controls={`brief-panel-${item.id}`} onClick={() => setStage(item.id)}><span>{item.number}</span><b>{item.label}</b><small>{item.cue}</small></button>)}
+    </div>
+    <div key={stage} id={`brief-panel-${stage}`} className={`brief-stage brief-${stage}`} role="tabpanel" aria-labelledby={`brief-tab-${stage}`}>
+      {stage === 'ground' && <>
+        <div className="brief-lead brief-ground-lead"><p className="stage-kicker">{selectedStage.number} / first reading</p><h3>{headlineTension?.label ?? map.framing}</h3><p>Not a verdict—just the strongest pull now visible in the field.</p></div>
+        <DecisionWeather tension={headlineTension} knownA={knownA} knownB={knownB} unresolved={unresolved} activePriorities={activePriorities} />
+      </>}
+      {stage === 'tension' && <>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
+        {tradeoff && <article className="spotlight-tension"><span>↔</span><div><p>One tension to examine</p><h3>{tradeoff.label}</h3><p>{tradeoff.detail}</p></div></article>}
+        {map.tradeoffs.length > 1 && <div className="brief-pager"><button onClick={() => cycleTradeoff(-1)} aria-label="Previous trade-off">←</button><span>{String(tradeoffIndex + 1).padStart(2, '0')} / {String(map.tradeoffs.length).padStart(2, '0')}</span><button onClick={() => cycleTradeoff(1)} aria-label="Next trade-off">→</button></div>}
+      </>}
+      {stage === 'fieldwork' && <>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>The next useful move is often a question—not a conclusion.</h3></div>
+        {question && <article className="spotlight-question"><span>{String(questionIndex + 1).padStart(2, '0')}</span><div><p>Question that could change the map</p><h3>{question.label}</h3><p>{question.detail}</p></div></article>}
+        <div className="fieldwork-footer"><div><p className="stage-kicker">The third route</p><h3>Not yet.</h3><p>{map.notYet.detail}</p></div><button onClick={() => setStage('landscape')}>Open the full field <Icon name="arrow" /></button></div>
+        {map.questionsToInvestigate.length > 1 && <div className="brief-pager"><button onClick={() => cycleQuestion(-1)} aria-label="Previous question">←</button><span>{String(questionIndex + 1).padStart(2, '0')} / {String(map.questionsToInvestigate.length).padStart(2, '0')}</span><button onClick={() => cycleQuestion(1)} aria-label="Next question">→</button></div>}
+      </>}
+      {stage === 'landscape' && <>
+        <div className="brief-lead landscape-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>Now explore the whole field at your own pace.</h3><p>Hover or focus a signal to read its evidence note. Your selected priorities alter emphasis locally.</p></div>
+        <Landscape map={map} activePriorities={activePriorities} focus={focus} setFocus={setFocus} optionA={optionA} optionB={optionB} horizon={horizon} />
+        <aside className="reading-panel briefing-reading" aria-live="polite"><div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'How to read it'}</span>{focused && <EvidenceMark type={focused.status} />}</div>{focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>Solid, porous, or fogged.</h3><p><b>Known</b> signals are grounded in what was supplied. <b>Assumptions</b> need checking. <b>Unknowns</b> are not gaps to fill with confidence.</p></>}</aside>
+      </>}
+    </div>
+  </section>
+}
+
 export default function App() {
   const [optionA, setOptionA] = useState(presetFutureMap.input.options[0])
   const [optionB, setOptionB] = useState(presetFutureMap.input.options[1])
@@ -100,7 +204,8 @@ export default function App() {
   const [isUnlocking, setIsUnlocking] = useState(false)
   const [judgeAuthorized, setJudgeAuthorized] = useState(false)
   const [judgeNotice, setJudgeNotice] = useState('Live mapping is locked for judge access.')
-  const focused = useMemo(() => [...futureMap.knowns, ...futureMap.assumptions, ...futureMap.unknowns].find(x => x.id === focus), [focus, futureMap])
+  const [activeScenario, setActiveScenario] = useState(demoScenarios[0].id)
+  const [mappingMoment, setMappingMoment] = useState(0)
 
   useEffect(() => {
     getJudgeAccessStatus().then((authorized) => {
@@ -109,11 +214,25 @@ export default function App() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!isMapping) return
+    const timer = window.setInterval(() => setMappingMoment((current) => (current + 1) % mappingMoments.length), 2800)
+    return () => window.clearInterval(timer)
+  }, [isMapping])
+
   function togglePriority(priority: Priority) {
     setSelected((current) => {
       if (current.includes(priority)) return current.filter((x) => x !== priority)
       return current.length === 3 ? current : [...current, priority]
     })
+  }
+  function chooseScenario(scenario: DemoScenario) {
+    setActiveScenario(scenario.id)
+    setOptionA(scenario.options[0])
+    setOptionB(scenario.options[1])
+    setSelected(scenario.priorities as Priority[])
+    setHorizon(scenario.horizon)
+    setNotice(`“${scenario.title}” is set. Map it live, or make the fork your own.`)
   }
   async function mapInputs() {
     if (!optionA.trim() || !optionB.trim()) { setNotice('Enter both routes before mapping the terrain.'); return }
@@ -125,6 +244,7 @@ export default function App() {
       return
     }
     setIsMapping(true)
+    setMappingMoment(0)
     setNotice('Mapping the uncertainty with GPT-5.6…')
     setFocus('')
     try {
@@ -170,11 +290,12 @@ export default function App() {
       <p className="lede">Choice Atlas separates what is solid from what is assumed, unknown, and still worth investigating. It does not tell you where to go.</p>
     </section>
     <section className="intake" aria-labelledby="intake-title">
-      <div className="intake-title"><p className="eyebrow">01 / Set the field</p><h2 id="intake-title">Name two possible routes.</h2><small>Exactly two. The map needs a meaningful fork.</small></div>
+      <div className="intake-title"><p className="eyebrow">01 / Set the field</p><h2 id="intake-title">Name two possible routes.</h2><small>Choose a demo fork, or make it yours. The map needs exactly two routes.</small></div>
+      <div className="scenario-picker" role="group" aria-label="Quick-start dilemma topics"><span>Quick starts</span><div>{demoScenarios.map((scenario) => <button key={scenario.id} type="button" className={activeScenario === scenario.id ? 'selected' : ''} onClick={() => chooseScenario(scenario)}><b>{scenario.title}</b><small>{scenario.cue}</small></button>)}</div></div>
       <div className="routes-inputs">
-        <label><span>Route A</span><input value={optionA} onChange={e => setOptionA(e.target.value)} maxLength={62} aria-label="First option" /></label>
+        <label><span>Route A</span><input value={optionA} onChange={e => { setOptionA(e.target.value); setActiveScenario('') }} maxLength={62} aria-label="First option" /></label>
         <div className="or">or</div>
-        <label><span>Route B</span><input value={optionB} onChange={e => setOptionB(e.target.value)} maxLength={62} aria-label="Second option" /></label>
+        <label><span>Route B</span><input value={optionB} onChange={e => { setOptionB(e.target.value); setActiveScenario('') }} maxLength={62} aria-label="Second option" /></label>
       </div>
       <fieldset className="priority-field"><legend>What matters in this terrain? <small>Choose up to three</small></legend><div className="priority-pills">
         {priorities.map(p => <button key={p} className={`priority ${tones[p]} ${selected.includes(p) ? 'selected' : ''}`} onClick={() => togglePriority(p)} aria-pressed={selected.includes(p)}><Icon name="plus" />{p}</button>)}
@@ -186,27 +307,9 @@ export default function App() {
         <p id="judge-notice" className="judge-notice" role="status">{judgeNotice}</p>
       </div>
       <button className="map-button" onClick={mapInputs} disabled={isMapping}>{isMapping ? 'Mapping terrain…' : 'Map the uncertainty'} <Icon name="arrow" /></button>
-      <p className="form-notice" role="status">{notice}</p>
+      {isMapping ? <MappingProgress moment={mappingMoment} /> : <p className="form-notice" role="status">{notice}</p>}
     </section>
-    <section className="atlas-section" id="atlas" aria-labelledby="atlas-title">
-      <div className="atlas-heading"><p className="eyebrow">02 / Read the field</p><h2 id="atlas-title">Your decision landscape</h2><p>{futureMap.framing}</p><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset fallback'}</span></div>
-      <Landscape map={futureMap} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
-      <aside className="reading-panel" aria-live="polite">
-        <div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'Legend'}</span>{focused && <EvidenceMark type={focused.status} />}</div>
-        {focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>The map holds three kinds of information.</h3><p><b>Known</b> things are clear. <b>Assumptions</b> are visible, but porous. <b>Unknowns</b> sit in the fog—an invitation to look, not a gap to fill.</p></>}
-      </aside>
-    </section>
-    <section className="tradeoffs" aria-labelledby="tradeoffs-title">
-      <div><p className="eyebrow">03 / Name the tensions</p><h2 id="tradeoffs-title">Trade-offs are not failures of analysis.</h2></div>
-      <div className="tension-lines">{futureMap.tradeoffs.map((t, i) => <article key={t.id} className={`tension tension-${i + 1}`}><span>↔</span><div><h3>{t.label}</h3><p>{t.detail}</p></div></article>)}</div>
-    </section>
-    <section className="questions" aria-labelledby="questions-title">
-      <div className="questions-heading"><p className="eyebrow"><Icon name="spark" /> 04 / Make the fog useful</p><h2 id="questions-title">Questions that could change the map.</h2><p>Not research for certainty—fieldwork for a more honest next step.</p></div>
-      <ol>{futureMap.questionsToInvestigate.map((q, i) => <li key={q.id}><span>0{i + 1}</span><div><h3>{q.label}</h3><p>{q.detail}</p></div><button aria-label={`Focus on ${q.label}`} onClick={() => { setFocus(q.id); document.getElementById('atlas')?.scrollIntoView({ behavior: 'smooth' }) }}><Icon name="arrow" /></button></li>)}</ol>
-    </section>
-    <section className="not-yet" aria-labelledby="not-yet-title">
-      <div className="not-yet-ink"><Icon name="compass" /></div><div><p className="eyebrow">The third route</p><h2 id="not-yet-title">Not yet.</h2><p>{futureMap.notYet.detail}</p></div><button onClick={() => setFocus(futureMap.notYet.id)}>Find a field test <Icon name="arrow" /></button>
-    </section>
+    <DecisionBriefing map={futureMap} mapSource={mapSource} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
     <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built for a live Build Week demo with a preset fallback.</p></div><p><b>Important limitation:</b> {futureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
   </main>
 }
