@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs><pattern id="g" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 1h1M5 5h1" stroke="#183029" stroke-opacity=".07"/></pattern></defs>
+  <rect width="1920" height="1080" fill="#1e2a27"/><rect width="1920" height="1080" fill="url(#g)"/>
+  <text x="120" y="150" fill="#e5d3a0" font-family="monospace" font-size="24" letter-spacing="3">BUILT WITH CODEX · LIVE PATH VERIFIED</text>
+  <text x="120" y="305" fill="#fffdf6" font-family="Georgia,serif" font-size="126" letter-spacing="-6">A map, not a verdict.</text>
+  <g transform="translate(120 470)"><rect width="480" height="300" fill="#29443a"/><text x="38" y="70" fill="#b8d0bd" font-family="monospace" font-size="18" letter-spacing="2">TESTED</text><text x="38" y="195" fill="#fffdf6" font-family="Georgia,serif" font-size="126">34</text><text x="38" y="245" fill="#d1ddd3" font-family="Arial" font-size="27">automated checks</text></g>
+  <g transform="translate(680 470)"><rect width="480" height="300" fill="#a84c2d"/><text x="38" y="70" fill="#f3d2c4" font-family="monospace" font-size="18" letter-spacing="2">LIVE</text><text x="38" y="188" fill="#fffdf6" font-family="Georgia,serif" font-size="76">GPT-5.6</text><text x="38" y="245" fill="#f7dfd5" font-family="Arial" font-size="27">structured map</text></g>
+  <g transform="translate(1240 470)"><rect width="480" height="300" fill="#496b83"/><text x="38" y="70" fill="#d7e4ef" font-family="monospace" font-size="18" letter-spacing="2">BOUNDARY</text><text x="38" y="188" fill="#fffdf6" font-family="Georgia,serif" font-size="76">0 advice</text><text x="38" y="245" fill="#dbe7ef" font-family="Arial" font-size="27">no prediction · no ranking</text></g>
+  <text x="120" y="940" fill="#b8c9bd" font-family="Arial" font-size="31">Choice Atlas makes space for the conversation a family still needs to have.</text>
+</svg>
