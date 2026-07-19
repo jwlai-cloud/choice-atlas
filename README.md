@@ -2,6 +2,15 @@
 
 A judge-ready Build Week prototype for meaningful two-option decisions. Choice Atlas asks GPT-5.6 to act as an *uncertainty cartographer*: it classifies what is known, assumed, and unknown without predicting an outcome or recommending a choice.
 
+## OpenAI Build Week evidence
+
+Choice Atlas uses the two required OpenAI technologies in different, inspectable roles:
+
+- **GPT-5.6 powers the working product.** A judge-authorized request reaches the server-only [Responses API requester](server/lib/openaiRequester.ts), which calls `gpt-5.6` with structured output. The response is parsed and revalidated against the strict [FutureMap contract](src/lib/futureMap.ts) before the React UI can render it. The UI labels successful output **Live GPT-5.6 map**; the deterministic fallback never masquerades as live analysis.
+- **Codex accelerated the build and verification workflow.** It was used to translate the brief into the test-driven contract, implement the visual experience and Vercel security boundary, run checks, produce the architecture/demo artifacts, and deliver via protected `dev` → `main` pull requests. Codex is not part of the visitor’s runtime decision analysis.
+
+See the concise [Build Week evidence record](docs/BUILD_WEEK_EVIDENCE.md), the [architecture graphic](outputs/choice-atlas-architecture.png), and the [final 1080p demo](outputs/video/choice-atlas-build-week-demo-1080p.mp4). The final video’s narration explicitly names both GPT-5.6’s runtime role and Codex’s build role.
+
 ## Run it
 
 ```bash
@@ -25,7 +34,7 @@ npm run preview
 2. Click **Map the uncertainty**. The prototype uses a static preset so the experience always works without an API key; the map remains one shared field rather than presenting two competing answer screens.
 3. Read the terrain: solid squares are knowns, outlined squares are assumptions, and soft fog marks unknowns. Hover or tab through landmarks to reveal their plain-language evidence note. Every selected priority changes emphasis in its relevant part of the terrain.
 4. Scroll through named trade-offs and questions that could genuinely change the map. Close on **Not yet**: a field-test path that respects uncertainty instead of forcing a premature verdict.
-5. Point to `src/lib/futureMap.ts` for the validated `FutureMap` data contract and `api/atlas.ts` for the server-side endpoint. GPT-5.6 returns only validated knowns, assumptions, unknowns, tensions, questions, and not-yet—not a recommendation.
+5. Point to `src/lib/futureMap.ts` for the validated `FutureMap` data contract and `api/atlas.ts` for the server-side endpoint. GPT-5.6 returns only validated knowns, assumptions, unknowns, tensions, questions, and not-yet—not a recommendation. Close with the in-product **Build Week evidence** section: it distinguishes the live GPT-5.6 runtime from Codex’s implementation and verification role.
 
 ## Live GPT mapping
 

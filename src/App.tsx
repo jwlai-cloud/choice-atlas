@@ -4,6 +4,7 @@ import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
 import { buildLandscapeLandmarks, itemForOption } from './lib/briefing'
 import { demoScenarios, mappingMoments, type DemoScenario } from './lib/demoScenarios'
+import { buildWeekEvidence } from './lib/buildWeekEvidence'
 
 type Priority = 'Creative depth' | 'Belonging' | 'Financial runway'
 const priorities: Priority[] = ['Creative depth', 'Belonging', 'Financial runway']
@@ -310,6 +311,10 @@ export default function App() {
       {isMapping ? <MappingProgress moment={mappingMoment} /> : <p className="form-notice" role="status">{notice}</p>}
     </section>
     <DecisionBriefing map={futureMap} mapSource={mapSource} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
+    <section className="build-week-evidence" aria-labelledby="build-week-evidence-title">
+      <div className="evidence-intro"><p className="eyebrow">Build Week evidence</p><h2 id="build-week-evidence-title">Made with Codex.<br/><em>Mapped with GPT-5.6.</em></h2><p>Two different roles, made inspectable for judges: Codex accelerated the build; GPT-5.6 powers the protected, live uncertainty map.</p></div>
+      <div className="evidence-cards">{buildWeekEvidence.map((item, index) => <article key={item.title}><span>0{index + 1}</span><p>{item.label}</p><h3>{item.title}</h3><div>{item.proof}</div><a href={item.href} target="_blank" rel="noreferrer">{item.link} <Icon name="arrow" /></a></article>)}</div>
+    </section>
     <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built for a live Build Week demo with a preset fallback.</p></div><p><b>Important limitation:</b> {futureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
   </main>
 }

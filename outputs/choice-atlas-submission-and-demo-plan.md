@@ -51,7 +51,7 @@ The differentiator is deliberate restraint: Choice Atlas does not predict a futu
 
 #### Accomplishments we’re proud of
 
-- **33 automated tests** covering the contract, model boundary, server endpoints, judge session, browser client behaviour, landscape placement, and demo scenarios.
+- **34 automated tests** covering the contract, model boundary, server endpoints, judge session, browser client behaviour, landscape placement, demo scenarios, and the visible Build Week evidence record.
 - **One verified production live mapping** through the complete judge-gate → GPT-5.6 → validated visual-map path.
 - A real interactive landscape instead of a chat transcript or two answer screens.
 
@@ -75,9 +75,9 @@ OpenAI API, GPT-5.6, OpenAI Responses API, React, Vite, TypeScript, Zod, Vercel,
 - Source: <https://github.com/jwlai-cloud/choice-atlas>
 - Judge code: provide separately in Devpost’s private judge-instructions field.
 
-## Final 2:00 demo storyboard and narration
+## Final 2:03 demo storyboard and narration
 
-The rendered 1080p cut is exactly 2:00, leaving a full one-minute margin below the three-minute limit. It is available at `outputs/video/choice-atlas-build-week-demo-1080p.mp4`; its premium voice-over source and edit script are retained alongside it for review.
+The rendered 1080p cut is exactly 2:03, leaving a 57-second margin below the three-minute limit. It is available at `outputs/video/choice-atlas-build-week-demo-1080p.mp4`; its premium voice-over source and edit script are retained alongside it for review.
 
 | Time | On screen | Narration | Edit direction |
 |---|---|---|---|
@@ -86,8 +86,8 @@ The rendered 1080p cut is exactly 2:00, leaving a full one-minute margin below t
 | 0:35–0:50 | Verified live GPT-5.6 map. | Ground, assumptions, and unknowns—not a prediction. | Cut around the observed cold wait. |
 | 0:50–1:12 | Animated decision-weather field. | Visual first reading: route currents, tension, and fog. | Captioned visual focus. |
 | 1:12–1:35 | Architecture handshake. | Protected judge session → GPT-5.6 → Zod FutureMap → visual field. | Native 1080p graphic. |
-| 1:35–1:55 | Proof card. | 33 tests, production live map, and no-advice boundary. | High-contrast proof point. |
-| 1:55–2:00 | Closing hero. | “A better map for the decision you still own.” | Gentle fade. |
+| 1:35–1:55 | Proof card. | Codex-built, 34 tests, production live map, and no-advice boundary. | High-contrast proof point. |
+| 1:55–2:03 | Closing hero. | “A better map for the decision you still own.” | Gentle fade. |
 
 ## Capture and edit plan
 
