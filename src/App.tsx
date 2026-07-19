@@ -3,6 +3,7 @@ import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap
 import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
 import { buildLandscapeLandmarks, itemForOption } from './lib/briefing'
+import { demoScenarios, mappingMoments, type DemoScenario } from './lib/demoScenarios'
 
 type Priority = 'Creative depth' | 'Belonging' | 'Financial runway'
 const priorities: Priority[] = ['Creative depth', 'Belonging', 'Financial runway']
@@ -11,6 +12,7 @@ const tones: Record<Priority, string> = {
   Belonging: 'moss',
   'Financial runway': 'blue',
 }
+
 
 function Icon({ name }: { name: 'arrow' | 'plus' | 'compass' | 'spark' }) {
   const paths = {
@@ -98,6 +100,15 @@ function SignalCard({ route, item }: { route: string; item?: AtlasItem }) {
   </article>
 }
 
+function MappingProgress({ moment }: { moment: number }) {
+  const [title, detail] = mappingMoments[moment % mappingMoments.length]
+  return <div className="mapping-progress" role="status" aria-live="polite" aria-busy="true">
+    <div className="mapping-orbit" aria-hidden="true"><i /><i /><i /></div>
+    <div><p>GPT-5.6 is drawing the field</p><h3>{title}</h3><span>{detail}</span></div>
+    <small>Live structured map · can take a moment</small>
+  </div>
+}
+
 function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, optionA, optionB, horizon }: {
   map: FutureMap; mapSource: 'preset' | 'live'; activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
 }) {
@@ -111,6 +122,7 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
   const question = map.questionsToInvestigate[questionIndex % Math.max(map.questionsToInvestigate.length, 1)]
   const selectedStage = briefStages.find((item) => item.id === stage) ?? briefStages[0]
   const focused = [...map.knowns, ...map.assumptions, ...map.unknowns].find((item) => item.id === focus)
+  const headlineTension = map.tradeoffs[0]
 
   useEffect(() => {
     setStage('ground')
@@ -129,7 +141,7 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
   return <section className="decision-briefing" id="atlas" aria-labelledby="briefing-title">
     <header className="briefing-header">
       <div><p className="eyebrow">02 / Your decision briefing</p><h2 id="briefing-title">Start with what matters.<br/><em>Then widen the view.</em></h2></div>
-      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p></div>
+      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p>{headlineTension && <div className="brief-keyline"><span>First read</span><b>{headlineTension.label}</b></div>}</div>
     </header>
     <div className="brief-progress" role="tablist" aria-label="Decision briefing stages">
       {briefStages.map((item) => <button key={item.id} id={`brief-tab-${item.id}`} role="tab" aria-selected={stage === item.id} aria-controls={`brief-panel-${item.id}`} onClick={() => setStage(item.id)}><span>{item.number}</span><b>{item.label}</b><small>{item.cue}</small></button>)}
@@ -174,6 +186,8 @@ export default function App() {
   const [isUnlocking, setIsUnlocking] = useState(false)
   const [judgeAuthorized, setJudgeAuthorized] = useState(false)
   const [judgeNotice, setJudgeNotice] = useState('Live mapping is locked for judge access.')
+  const [activeScenario, setActiveScenario] = useState(demoScenarios[0].id)
+  const [mappingMoment, setMappingMoment] = useState(0)
   const focused = useMemo(() => [...futureMap.knowns, ...futureMap.assumptions, ...futureMap.unknowns].find(x => x.id === focus), [focus, futureMap])
 
   useEffect(() => {
@@ -183,11 +197,25 @@ export default function App() {
     })
   }, [])
 
+  useEffect(() => {
+    if (!isMapping) return
+    const timer = window.setInterval(() => setMappingMoment((current) => (current + 1) % mappingMoments.length), 2800)
+    return () => window.clearInterval(timer)
+  }, [isMapping])
+
   function togglePriority(priority: Priority) {
     setSelected((current) => {
       if (current.includes(priority)) return current.filter((x) => x !== priority)
       return current.length === 3 ? current : [...current, priority]
     })
+  }
+  function chooseScenario(scenario: DemoScenario) {
+    setActiveScenario(scenario.id)
+    setOptionA(scenario.options[0])
+    setOptionB(scenario.options[1])
+    setSelected(scenario.priorities as Priority[])
+    setHorizon(scenario.horizon)
+    setNotice(`“${scenario.title}” is set. Map it live, or make the fork your own.`)
   }
   async function mapInputs() {
     if (!optionA.trim() || !optionB.trim()) { setNotice('Enter both routes before mapping the terrain.'); return }
@@ -199,6 +227,7 @@ export default function App() {
       return
     }
     setIsMapping(true)
+    setMappingMoment(0)
     setNotice('Mapping the uncertainty with GPT-5.6…')
     setFocus('')
     try {
@@ -244,11 +273,12 @@ export default function App() {
       <p className="lede">Choice Atlas separates what is solid from what is assumed, unknown, and still worth investigating. It does not tell you where to go.</p>
     </section>
     <section className="intake" aria-labelledby="intake-title">
-      <div className="intake-title"><p className="eyebrow">01 / Set the field</p><h2 id="intake-title">Name two possible routes.</h2><small>Exactly two. The map needs a meaningful fork.</small></div>
+      <div className="intake-title"><p className="eyebrow">01 / Set the field</p><h2 id="intake-title">Name two possible routes.</h2><small>Choose a demo fork, or make it yours. The map needs exactly two routes.</small></div>
+      <div className="scenario-picker" role="group" aria-label="Quick-start dilemma topics"><span>Quick starts</span><div>{demoScenarios.map((scenario) => <button key={scenario.id} type="button" className={activeScenario === scenario.id ? 'selected' : ''} onClick={() => chooseScenario(scenario)}><b>{scenario.title}</b><small>{scenario.cue}</small></button>)}</div></div>
       <div className="routes-inputs">
-        <label><span>Route A</span><input value={optionA} onChange={e => setOptionA(e.target.value)} maxLength={62} aria-label="First option" /></label>
+        <label><span>Route A</span><input value={optionA} onChange={e => { setOptionA(e.target.value); setActiveScenario('') }} maxLength={62} aria-label="First option" /></label>
         <div className="or">or</div>
-        <label><span>Route B</span><input value={optionB} onChange={e => setOptionB(e.target.value)} maxLength={62} aria-label="Second option" /></label>
+        <label><span>Route B</span><input value={optionB} onChange={e => { setOptionB(e.target.value); setActiveScenario('') }} maxLength={62} aria-label="Second option" /></label>
       </div>
       <fieldset className="priority-field"><legend>What matters in this terrain? <small>Choose up to three</small></legend><div className="priority-pills">
         {priorities.map(p => <button key={p} className={`priority ${tones[p]} ${selected.includes(p) ? 'selected' : ''}`} onClick={() => togglePriority(p)} aria-pressed={selected.includes(p)}><Icon name="plus" />{p}</button>)}
@@ -260,7 +290,7 @@ export default function App() {
         <p id="judge-notice" className="judge-notice" role="status">{judgeNotice}</p>
       </div>
       <button className="map-button" onClick={mapInputs} disabled={isMapping}>{isMapping ? 'Mapping terrain…' : 'Map the uncertainty'} <Icon name="arrow" /></button>
-      <p className="form-notice" role="status">{notice}</p>
+      {isMapping ? <MappingProgress moment={mappingMoment} /> : <p className="form-notice" role="status">{notice}</p>}
     </section>
     <DecisionBriefing map={futureMap} mapSource={mapSource} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
     <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built for a live Build Week demo with a preset fallback.</p></div><p><b>Important limitation:</b> {futureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
