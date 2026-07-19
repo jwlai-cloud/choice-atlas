@@ -75,27 +75,26 @@ OpenAI API, GPT-5.6, OpenAI Responses API, React, Vite, TypeScript, Zod, Vercel,
 - Source: <https://github.com/jwlai-cloud/choice-atlas>
 - Judge code: provide separately in Devpost’s private judge-instructions field.
 
-## 2:18 demo storyboard and narration
+## Final 2:00 demo storyboard and narration
 
-The target runtime is 2:18, leaving a 42-second safety margin below a three-minute limit.
+The rendered 1080p cut is exactly 2:00, leaving a full one-minute margin below the three-minute limit. It is available at `outputs/video/choice-atlas-build-week-demo-1080p.mp4`; its premium voice-over source and edit script are retained alongside it for review.
 
 | Time | On screen | Narration | Edit direction |
 |---|---|---|---|
-| 0:00–0:12 | Title and the hero line: “Don’t force a verdict. Learn the shape of the choice.” | “When a choice could change your life, a confident answer can be the least helpful thing. Choice Atlas helps you see the shape of uncertainty before you decide.” | Quiet fade in; hold the editorial typography. |
-| 0:12–0:32 | Choose the **Stay or move** quick start, then edit one route to prove it is not a canned demo. Select priorities and one-year horizon. | “Start from a meaningful dilemma, or make the fork your own. Choice Atlas always keeps exactly two routes, the values that matter, and a time horizon in view.” | Cursor selects the quick start, then edits a few words. Never show the judge code. |
-| 0:32–0:44 | Brief unlocked live-demo state, Map button, then the cartography progress sequence. | “For the live demo, GPT-5.6 maps the field through a protected server-side session. While it works, the interface tells you what it is doing: reading the ground, finding the tension, and protecting the unknowns.” | Use an already-unlocked clean session; record one progress beat, then cut to the completed response. |
-| 0:44–1:10 | Completed **Ground** briefing labelled “Live GPT-5.6 map.” Hold on the animated decision-weather visual, then switch to **Tension**. | “Instead of a verdict, GPT-5.6 returns a structured map. The first frame is visual: two route currents, a central tension, and fog around what cannot honestly be claimed. Then we bring one trade-off into focus—without pretending either route wins.” | Cut past the cold model wait. Let the moving route currents and Ground-to-Tension transition carry the visual change. |
-| 1:10–1:32 | Switch to **Fieldwork**, reveal one question and “Not yet,” then open the full Landscape. | “Next, Choice Atlas shows the question most likely to change the map. The third route is ‘Not yet’: a reversible field test, not a disguised recommendation. Only then do we open the full field—solid knowns, translucent assumptions, and fogged unknowns.” | Move one stage at a time; slow zoom only after the complete field appears. |
-| 1:32–1:50 | Architecture graphic: person → secure judge session → GPT-5.6 structured response → Zod FutureMap → landscape. | “Under the surface, the model is constrained by a FutureMap contract. The Vercel function validates every response and rejects recommendation-shaped output before the browser renders anything.” | Static diagram with a gentle pan across the five stages. |
-| 1:50–2:05 | Proof card: 33 tests, live production mapping, no recommendation boundary. | “We tested the contract, gate, client, and server in 33 automated tests, then verified the full live path in production.” | Large, readable numbers; hold for two seconds. |
-| 2:05–2:18 | Hero / live URL / final line. | “Choice Atlas does not decide a life for you. It gives you a better map for the decision you still own.” | Fade to project name, live link, and Devpost call to action. |
+| 0:00–0:15 | Hero: “A decision changes more than one life.” | The family benefit and problem. | Editorial fade. |
+| 0:15–0:35 | Quick-start, editable two-route intake. | Start with exactly two meaningful routes. | Captioned screen proof. |
+| 0:35–0:50 | Verified live GPT-5.6 map. | Ground, assumptions, and unknowns—not a prediction. | Cut around the observed cold wait. |
+| 0:50–1:12 | Animated decision-weather field. | Visual first reading: route currents, tension, and fog. | Captioned visual focus. |
+| 1:12–1:35 | Architecture handshake. | Protected judge session → GPT-5.6 → Zod FutureMap → visual field. | Native 1080p graphic. |
+| 1:35–1:55 | Proof card. | 33 tests, production live map, and no-advice boundary. | High-contrast proof point. |
+| 1:55–2:00 | Closing hero. | “A better map for the decision you still own.” | Gentle fade. |
 
 ## Capture and edit plan
 
 1. **Browser Use for clean proof and stills.** Use the in-app browser to create a dedicated, notification-free session; pre-unlock it; capture the hero, intake, live-map, focused-signal, trade-offs, and Not yet frames. Browser Use is ideal for verifying the UI, inspecting the live label, and taking repeatable screenshots. It does not provide a video-recording API in this session.
 2. **Screen recording for motion.** Record only the browser window in a clean dedicated profile or via the operating system’s screen recorder. The footage will show typed routes and priority selection, then cut from the Map click to the completed live map so judges do not wait through the observed cold request. Do not record the access-code entry, Vercel dashboard, or any secret.
 3. **Architecture card.** Build a compact SVG/Mermaid-style graphic from the five-stage sequence above—not a generic AI diagram.
-4. **Edit.** Normalize clips to 1280×720 at 30 fps; use short fades, a slow zoom on the map legend, and readable captions. Watch once muted to ensure the visual narrative stands on its own.
+4. **Edit.** The checked-in edit is normalized to 1920×1080 at 30 fps with short fades and readable captions. Watch once muted to ensure the visual narrative stands on its own.
 5. **Voice-over.** This Mac has the locally installed `Karen (Premium)` English-Australian voice. Set `VOICE` to any installed compatible macOS voice (list them with `say -v '?'`) before rendering. After the narration is approved, generate a clean voice track and normalize it:
 
    ```bash

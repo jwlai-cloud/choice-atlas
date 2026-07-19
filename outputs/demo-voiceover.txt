@@ -1,0 +1,19 @@
+Some decisions do not belong in a pros-and-cons list.
+
+For a family, choosing whether to stay, move, lead, build, or wait can change work, belonging, money, and everyday life at once. The hardest part is not finding an answer. It is seeing what the answer would ask everyone to carry.
+
+Choice Atlas is an uncertainty cartographer for that moment.
+
+Start with exactly two routes, the values that matter, and a time horizon. Use a quick start for the demo, or edit the fork until it is truly yours.
+
+Then, in a private judge session, GPT-5.6 reads the field. It does not choose. It separates known ground from assumptions, unknowns, trade-offs, and questions worth investigating.
+
+The first result is visual. Two route currents move across the field. Their central pull names the tension. Fog holds what cannot honestly be predicted. The selected priorities change the emphasis, so the map is about this decision, not a generic future.
+
+From there, one trade-off comes into focus. Then one question that could change the map. And there is a legitimate third route: not yet. Gather one piece of lived evidence before committing.
+
+Under the surface, the live map is protected by a judge gate. The OpenAI key stays server-side. GPT-5.6 returns a structured response, and a strict FutureMap contract validates it before the browser can render it. Recommendation-shaped output has no place in the contract.
+
+We verified the complete live path and built thirty-three automated checks around the contract, access boundary, client, and server.
+
+Choice Atlas does not decide a life for a family. It gives them a clearer, more honest field in which to decide together.
