@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap'
 import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
@@ -91,13 +91,32 @@ const briefStages: Array<{ id: BriefStage; number: string; label: string; cue: s
   { id: 'landscape', number: '04', label: 'Landscape', cue: 'explore the whole field' },
 ]
 
-function SignalCard({ route, item }: { route: string; item?: AtlasItem }) {
-  return <article className="signal-card">
-    <span>{route}</span>
-    <EvidenceMark type="known" />
-    <h3>{item?.label ?? 'No confirmed signal yet'}</h3>
-    <p>{item?.detail ?? 'This route needs more concrete information before it can be mapped honestly.'}</p>
-  </article>
+function DecisionWeather({ tension, knownA, knownB, unresolved, activePriorities }: { tension?: AtlasItem; knownA?: AtlasItem; knownB?: AtlasItem; unresolved?: AtlasItem; activePriorities: Priority[] }) {
+  const emphasis = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
+  return <figure className={`decision-weather ${emphasis}`} aria-label={`Visual first reading: ${tension?.label ?? 'two routes in tension'}`}>
+    <svg viewBox="0 0 1000 470" role="img" aria-hidden="true">
+      <defs>
+        <filter id="weatherBlur"><feGaussianBlur stdDeviation="22" /></filter>
+        <radialGradient id="weatherGlow"><stop stopColor="#f8f4e8" stopOpacity=".95" /><stop offset="1" stopColor="#f8f4e8" stopOpacity="0" /></radialGradient>
+        <linearGradient id="weatherWash" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#dce4d8" /><stop offset="1" stopColor="#ece3d9" /></linearGradient>
+      </defs>
+      <rect width="1000" height="470" fill="url(#weatherWash)" />
+      <g className="weather-contours"><path d="M-40 110C90 27 198 48 286 151c87 102 183 88 260 7 75-80 177-93 276-16 73 57 140 48 220-10" /><path d="M-40 149c136-78 226-43 304 55 79 99 190 74 267-7 83-88 190-88 285-7 76 65 149 50 227-9" /><path d="M-40 194c139-73 248-39 325 61 75 98 193 75 272-11 77-85 189-86 283-6 79 67 144 49 202-8" /></g>
+      <path className="weather-route weather-route-a" d="M92 416C164 337 214 303 314 270c90-30 128-72 181-140" />
+      <path className="weather-route weather-route-b" d="M908 416c-75-80-127-113-224-147-88-31-124-70-179-139" />
+      <path className="weather-ridge" d="M-10 275c136-98 247-65 339 14 84 72 183 63 259-17 79-83 187-74 271-11 62 47 105 39 151 9" />
+      <ellipse className="weather-fog weather-fog-a" cx="300" cy="144" rx="148" ry="85" fill="url(#weatherGlow)" filter="url(#weatherBlur)" />
+      <ellipse className="weather-fog weather-fog-b" cx="727" cy="155" rx="164" ry="91" fill="url(#weatherGlow)" filter="url(#weatherBlur)" />
+      <circle className="weather-core" cx="500" cy="218" r="30" />
+      <circle className="weather-core-ring" cx="500" cy="218" r="49" />
+      <circle className="weather-star weather-star-a" cx="245" cy="307" r="9" />
+      <circle className="weather-star weather-star-b" cx="757" cy="306" r="9" />
+    </svg>
+    <div className="weather-core-label"><span>the pull</span><b>{tension?.label ?? 'Two live routes'}</b></div>
+    <div className="weather-marker weather-marker-a"><span>Route A / known</span><b>{knownA?.label ?? 'Conditions to confirm'}</b></div>
+    <div className="weather-marker weather-marker-b"><span>Route B / known</span><b>{knownB?.label ?? 'Conditions to confirm'}</b></div>
+    <figcaption><EvidenceMark type="unknown" /><span>Leave open</span><b>{unresolved?.label ?? 'The lived experience of each route'}</b></figcaption>
+  </figure>
 }
 
 function MappingProgress({ moment }: { moment: number }) {
@@ -148,9 +167,8 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
     </div>
     <div key={stage} id={`brief-panel-${stage}`} className={`brief-stage brief-${stage}`} role="tabpanel" aria-labelledby={`brief-tab-${stage}`}>
       {stage === 'ground' && <>
-        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>{map.framing}</h3><p>Before imagining outcomes, separate the conditions already in the field from the ones that still need evidence.</p></div>
-        <div className="route-signals"><SignalCard route={`Route A · ${optionA}`} item={knownA} /><SignalCard route={`Route B · ${optionB}`} item={knownB} /></div>
-        <aside className="fog-note"><EvidenceMark type="unknown" /><div><span>Keep this unresolved</span><h3>{unresolved?.label ?? 'The lived experience of each route'}</h3><p>{unresolved?.detail ?? 'A useful map leaves room for information that has not yet arrived.'}</p></div></aside>
+        <div className="brief-lead brief-ground-lead"><p className="stage-kicker">{selectedStage.number} / first reading</p><h3>{headlineTension?.label ?? map.framing}</h3><p>Not a verdict—just the strongest pull now visible in the field.</p></div>
+        <DecisionWeather tension={headlineTension} knownA={knownA} knownB={knownB} unresolved={unresolved} activePriorities={activePriorities} />
       </>}
       {stage === 'tension' && <>
         <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
@@ -188,7 +206,6 @@ export default function App() {
   const [judgeNotice, setJudgeNotice] = useState('Live mapping is locked for judge access.')
   const [activeScenario, setActiveScenario] = useState(demoScenarios[0].id)
   const [mappingMoment, setMappingMoment] = useState(0)
-  const focused = useMemo(() => [...futureMap.knowns, ...futureMap.assumptions, ...futureMap.unknowns].find(x => x.id === focus), [focus, futureMap])
 
   useEffect(() => {
     getJudgeAccessStatus().then((authorized) => {
