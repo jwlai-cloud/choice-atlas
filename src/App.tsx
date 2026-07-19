@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap'
 import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
+import { buildLandscapeLandmarks, itemForOption } from './lib/briefing'
 
 type Priority = 'Creative depth' | 'Belonging' | 'Financial runway'
 const priorities: Priority[] = ['Creative depth', 'Belonging', 'Financial runway']
@@ -39,14 +40,7 @@ function Landscape({ map, activePriorities, focus, setFocus, optionA, optionB, h
 }) {
   const activeClasses = activePriorities.map((priority) => `priority-${tones[priority]}`).join(' ')
   const isFocus = (id: string) => focus === id
-  const firstFor = (items: AtlasItem[], option: 'a' | 'b' | 'shared') => items.find((item) => item.option === option) ?? items[0]
-  const landmarks = [
-    { slot: 'team-landmark', side: 'a' as const, item: firstFor(map.knowns, 'a') },
-    { slot: 'community-landmark', side: 'a' as const, item: firstFor(map.assumptions, 'a') },
-    { slot: 'offer-landmark', side: 'b' as const, item: firstFor(map.knowns, 'b') },
-    { slot: 'day-landmark', side: 'b' as const, item: firstFor(map.unknowns, 'b') },
-    { slot: 'home-landmark', side: 'shared' as const, item: firstFor(map.unknowns, 'shared') },
-  ].filter((landmark): landmark is { slot: string; side: 'a' | 'b' | 'shared'; item: AtlasItem } => Boolean(landmark.item))
+  const landmarks = buildLandscapeLandmarks(map)
   return <section className={`landscape ${activeClasses}`} aria-label="Explorable uncertainty map">
     <div className="map-key" aria-label="Map legend">
       <span><EvidenceMark type="known" />Known</span><span><EvidenceMark type="assumption" />Assumption</span><span><EvidenceMark type="unknown" />Unknown</span>
@@ -83,6 +77,86 @@ function Landscape({ map, activePriorities, focus, setFocus, optionA, optionB, h
     {landmarks.map((landmark) => <Landmark key={`${landmark.slot}-${landmark.item.id}`} item={landmark.item} slot={landmark.slot} side={landmark.side} highlighted={isFocus(landmark.item.id)} onFocus={() => setFocus(landmark.item.id)} />)}
     <div className="compass-rose" aria-hidden="true"><Icon name="compass" /><span>uncertainty<br/>cartography</span></div>
     <div className="map-caption"><span>{horizon}</span><b>Two routes. One changing field.</b></div>
+  </section>
+}
+
+type BriefStage = 'ground' | 'tension' | 'fieldwork' | 'landscape'
+
+const briefStages: Array<{ id: BriefStage; number: string; label: string; cue: string }> = [
+  { id: 'ground', number: '01', label: 'Ground', cue: 'what is already here' },
+  { id: 'tension', number: '02', label: 'Tension', cue: 'what pulls in two directions' },
+  { id: 'fieldwork', number: '03', label: 'Fieldwork', cue: 'what could change the map' },
+  { id: 'landscape', number: '04', label: 'Landscape', cue: 'explore the whole field' },
+]
+
+function SignalCard({ route, item }: { route: string; item?: AtlasItem }) {
+  return <article className="signal-card">
+    <span>{route}</span>
+    <EvidenceMark type="known" />
+    <h3>{item?.label ?? 'No confirmed signal yet'}</h3>
+    <p>{item?.detail ?? 'This route needs more concrete information before it can be mapped honestly.'}</p>
+  </article>
+}
+
+function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, optionA, optionB, horizon }: {
+  map: FutureMap; mapSource: 'preset' | 'live'; activePriorities: Priority[]; focus: string; setFocus: (id: string) => void; optionA: string; optionB: string; horizon: string
+}) {
+  const [stage, setStage] = useState<BriefStage>('ground')
+  const [tradeoffIndex, setTradeoffIndex] = useState(0)
+  const [questionIndex, setQuestionIndex] = useState(0)
+  const knownA = itemForOption(map.knowns, 'a')
+  const knownB = itemForOption(map.knowns, 'b')
+  const unresolved = map.unknowns[0]
+  const tradeoff = map.tradeoffs[tradeoffIndex % Math.max(map.tradeoffs.length, 1)]
+  const question = map.questionsToInvestigate[questionIndex % Math.max(map.questionsToInvestigate.length, 1)]
+  const selectedStage = briefStages.find((item) => item.id === stage) ?? briefStages[0]
+  const focused = [...map.knowns, ...map.assumptions, ...map.unknowns].find((item) => item.id === focus)
+
+  useEffect(() => {
+    setStage('ground')
+    setTradeoffIndex(0)
+    setQuestionIndex(0)
+  }, [map])
+
+  function cycleTradeoff(direction: -1 | 1) {
+    setTradeoffIndex((current) => (current + direction + map.tradeoffs.length) % map.tradeoffs.length)
+  }
+
+  function cycleQuestion(direction: -1 | 1) {
+    setQuestionIndex((current) => (current + direction + map.questionsToInvestigate.length) % map.questionsToInvestigate.length)
+  }
+
+  return <section className="decision-briefing" id="atlas" aria-labelledby="briefing-title">
+    <header className="briefing-header">
+      <div><p className="eyebrow">02 / Your decision briefing</p><h2 id="briefing-title">Start with what matters.<br/><em>Then widen the view.</em></h2></div>
+      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p></div>
+    </header>
+    <div className="brief-progress" role="tablist" aria-label="Decision briefing stages">
+      {briefStages.map((item) => <button key={item.id} id={`brief-tab-${item.id}`} role="tab" aria-selected={stage === item.id} aria-controls={`brief-panel-${item.id}`} onClick={() => setStage(item.id)}><span>{item.number}</span><b>{item.label}</b><small>{item.cue}</small></button>)}
+    </div>
+    <div key={stage} id={`brief-panel-${stage}`} className={`brief-stage brief-${stage}`} role="tabpanel" aria-labelledby={`brief-tab-${stage}`}>
+      {stage === 'ground' && <>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>{map.framing}</h3><p>Before imagining outcomes, separate the conditions already in the field from the ones that still need evidence.</p></div>
+        <div className="route-signals"><SignalCard route={`Route A · ${optionA}`} item={knownA} /><SignalCard route={`Route B · ${optionB}`} item={knownB} /></div>
+        <aside className="fog-note"><EvidenceMark type="unknown" /><div><span>Keep this unresolved</span><h3>{unresolved?.label ?? 'The lived experience of each route'}</h3><p>{unresolved?.detail ?? 'A useful map leaves room for information that has not yet arrived.'}</p></div></aside>
+      </>}
+      {stage === 'tension' && <>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
+        {tradeoff && <article className="spotlight-tension"><span>↔</span><div><p>One tension to examine</p><h3>{tradeoff.label}</h3><p>{tradeoff.detail}</p></div></article>}
+        {map.tradeoffs.length > 1 && <div className="brief-pager"><button onClick={() => cycleTradeoff(-1)} aria-label="Previous trade-off">←</button><span>{String(tradeoffIndex + 1).padStart(2, '0')} / {String(map.tradeoffs.length).padStart(2, '0')}</span><button onClick={() => cycleTradeoff(1)} aria-label="Next trade-off">→</button></div>}
+      </>}
+      {stage === 'fieldwork' && <>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>The next useful move is often a question—not a conclusion.</h3></div>
+        {question && <article className="spotlight-question"><span>{String(questionIndex + 1).padStart(2, '0')}</span><div><p>Question that could change the map</p><h3>{question.label}</h3><p>{question.detail}</p></div></article>}
+        <div className="fieldwork-footer"><div><p className="stage-kicker">The third route</p><h3>Not yet.</h3><p>{map.notYet.detail}</p></div><button onClick={() => setStage('landscape')}>Open the full field <Icon name="arrow" /></button></div>
+        {map.questionsToInvestigate.length > 1 && <div className="brief-pager"><button onClick={() => cycleQuestion(-1)} aria-label="Previous question">←</button><span>{String(questionIndex + 1).padStart(2, '0')} / {String(map.questionsToInvestigate.length).padStart(2, '0')}</span><button onClick={() => cycleQuestion(1)} aria-label="Next question">→</button></div>}
+      </>}
+      {stage === 'landscape' && <>
+        <div className="brief-lead landscape-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>Now explore the whole field at your own pace.</h3><p>Hover or focus a signal to read its evidence note. Your selected priorities alter emphasis locally.</p></div>
+        <Landscape map={map} activePriorities={activePriorities} focus={focus} setFocus={setFocus} optionA={optionA} optionB={optionB} horizon={horizon} />
+        <aside className="reading-panel briefing-reading" aria-live="polite"><div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'How to read it'}</span>{focused && <EvidenceMark type={focused.status} />}</div>{focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>Solid, porous, or fogged.</h3><p><b>Known</b> signals are grounded in what was supplied. <b>Assumptions</b> need checking. <b>Unknowns</b> are not gaps to fill with confidence.</p></>}</aside>
+      </>}
+    </div>
   </section>
 }
 
@@ -188,25 +262,7 @@ export default function App() {
       <button className="map-button" onClick={mapInputs} disabled={isMapping}>{isMapping ? 'Mapping terrain…' : 'Map the uncertainty'} <Icon name="arrow" /></button>
       <p className="form-notice" role="status">{notice}</p>
     </section>
-    <section className="atlas-section" id="atlas" aria-labelledby="atlas-title">
-      <div className="atlas-heading"><p className="eyebrow">02 / Read the field</p><h2 id="atlas-title">Your decision landscape</h2><p>{futureMap.framing}</p><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset fallback'}</span></div>
-      <Landscape map={futureMap} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
-      <aside className="reading-panel" aria-live="polite">
-        <div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'Legend'}</span>{focused && <EvidenceMark type={focused.status} />}</div>
-        {focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>The map holds three kinds of information.</h3><p><b>Known</b> things are clear. <b>Assumptions</b> are visible, but porous. <b>Unknowns</b> sit in the fog—an invitation to look, not a gap to fill.</p></>}
-      </aside>
-    </section>
-    <section className="tradeoffs" aria-labelledby="tradeoffs-title">
-      <div><p className="eyebrow">03 / Name the tensions</p><h2 id="tradeoffs-title">Trade-offs are not failures of analysis.</h2></div>
-      <div className="tension-lines">{futureMap.tradeoffs.map((t, i) => <article key={t.id} className={`tension tension-${i + 1}`}><span>↔</span><div><h3>{t.label}</h3><p>{t.detail}</p></div></article>)}</div>
-    </section>
-    <section className="questions" aria-labelledby="questions-title">
-      <div className="questions-heading"><p className="eyebrow"><Icon name="spark" /> 04 / Make the fog useful</p><h2 id="questions-title">Questions that could change the map.</h2><p>Not research for certainty—fieldwork for a more honest next step.</p></div>
-      <ol>{futureMap.questionsToInvestigate.map((q, i) => <li key={q.id}><span>0{i + 1}</span><div><h3>{q.label}</h3><p>{q.detail}</p></div><button aria-label={`Focus on ${q.label}`} onClick={() => { setFocus(q.id); document.getElementById('atlas')?.scrollIntoView({ behavior: 'smooth' }) }}><Icon name="arrow" /></button></li>)}</ol>
-    </section>
-    <section className="not-yet" aria-labelledby="not-yet-title">
-      <div className="not-yet-ink"><Icon name="compass" /></div><div><p className="eyebrow">The third route</p><h2 id="not-yet-title">Not yet.</h2><p>{futureMap.notYet.detail}</p></div><button onClick={() => setFocus(futureMap.notYet.id)}>Find a field test <Icon name="arrow" /></button>
-    </section>
+    <DecisionBriefing map={futureMap} mapSource={mapSource} activePriorities={selected} focus={focus} setFocus={setFocus} optionA={optionA || 'Route A'} optionB={optionB || 'Route B'} horizon={horizon} />
     <footer id="limits"><div><a className="wordmark" href="#top"><span>Choice</span>Atlas<i /></a><p>Built for a live Build Week demo with a preset fallback.</p></div><p><b>Important limitation:</b> {futureMap.limitations}</p><p className="future">FutureMap v1.0 · GPT route ready</p></footer>
   </main>
 }

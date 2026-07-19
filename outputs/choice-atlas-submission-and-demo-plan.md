@@ -8,10 +8,8 @@
 - The live result was labelled **Live GPT-5.6 map**, rendered the evidence landscape, and supported landmark detail interaction.
 - Browser console: no errors or warnings observed.
 - Observed cold live-map time: approximately 47 seconds. Record a pre-warmed completed result rather than waiting through this in the final cut.
-
-## One pre-recording polish item
-
-When a valid model response has no `shared` unknown, two visual landmark slots can show the same unknown item. This does not affect the map’s content or safety boundary, but should be removed before final recording so the landscape never repeats a marker.
+- The post-map experience is now a four-part briefing: **Ground**, **Tension**, **Fieldwork**, then the full **Landscape**. A local browser pass verified each stage, its mobile layout, and a clean console.
+- The repeated-landmark edge case is fixed: if a live response has no shared unknown, the map omits that optional marker rather than repeating another unknown.
 
 ## Devpost story draft
 
@@ -29,14 +27,14 @@ Choice Atlas turns exactly two possible routes, up to three priorities, and a ti
 
 1. A person names the two routes and the values that matter locally.
 2. GPT-5.6 acts as an uncertainty cartographer and returns structured knowns, assumptions, unknowns, trade-offs, investigation questions, and a “Not yet” field test.
-3. The interface renders them as one visual field: solid marks for knowns, translucent marks for assumptions, and fog for unknowns.
-4. The person explores signals, tensions, and questions that could change the map.
+3. The interface first reveals one useful lens at a time—known ground, a single trade-off, then a next question—before opening the complete field.
+4. The full landscape renders solid marks for knowns, translucent marks for assumptions, and fog for unknowns.
 
 The differentiator is deliberate restraint: Choice Atlas does not predict a future or recommend a route. It makes future possibilities and uncertainty visible as reference material for the person who must live with the choice.
 
 ## How we built it
 
-- **Experience:** React + Vite with one responsive SVG decision landscape, keyboard-accessible landmarks, and reduced-motion support.
+- **Experience:** React + Vite with an animated, responsive four-stage decision briefing, a keyboard-accessible SVG landscape, and reduced-motion support.
 - **AI boundary:** OpenAI Responses API with **GPT-5.6** and Zod structured output.
 - **Safety contract:** a strict `FutureMap` schema accepts only the requested categories and rejects undeclared recommendation-like output; server validation also checks that returned routes match the original request.
 - **Deployment:** Vercel serves the client and two serverless functions.
@@ -50,7 +48,7 @@ The differentiator is deliberate restraint: Choice Atlas does not predict a futu
 
 ## Accomplishments we’re proud of
 
-- **29 automated tests** covering the contract, model boundary, server endpoints, judge session, and browser client behaviour.
+- **31 automated tests** covering the contract, model boundary, server endpoints, judge session, browser client behaviour, and landscape placement.
 - **One verified production live mapping** through the complete judge-gate → GPT-5.6 → validated visual-map path.
 - A real interactive landscape instead of a chat transcript or two answer screens.
 
@@ -81,8 +79,8 @@ OpenAI API, GPT-5.6, OpenAI Responses API, React, Vite, TypeScript, Zod, Vercel,
 | 0:00–0:12 | Title and the hero line: “Don’t force a verdict. Learn the shape of the choice.” | “When a choice could change your life, a confident answer can be the least helpful thing. Choice Atlas helps you see the shape of uncertainty before you decide.” | Quiet fade in; hold the editorial typography. |
 | 0:12–0:32 | Two real routes appear: continue leading the Perth team / join the Berlin studio. Select priorities and one-year horizon. | “Start with exactly two meaningful routes, the values that matter, and a time horizon. Here, the tension is leadership continuity in Perth versus a studio opportunity in Berlin.” | Cursor follows each field. Never show the judge code. |
 | 0:32–0:44 | Brief unlocked live-demo state, then the Map button. | “For the live demo, GPT-5.6 is available through a protected server-side session. The browser never sees the API key, and the access code never appears in a URL.” | Use an already-unlocked clean session; cut immediately after pressing Map. |
-| 0:44–1:10 | Completed landscape labelled “Live GPT-5.6 map.” Hover/focus known, assumption, and unknown landmarks. | “Instead of a verdict, GPT-5.6 returns a structured map: what is known, what is assumed, and what is still in the fog. Solid signals are facts in the prompt. Translucent signals are assumptions. Fog marks the questions no model can honestly answer.” | Cut past the cold model wait. Slow zoom toward the evidence legend and one focused signal. |
-| 1:10–1:32 | Trade-offs, questions, and “Not yet.” | “The map makes trade-offs explicit—continuity versus novelty, leadership breadth versus studio immersion—and ends with questions that could change the map. The third route is ‘Not yet’: a reversible field test, not a disguised recommendation.” | Scroll rhythmically; highlight one question and the Not yet card. |
+| 0:44–1:10 | Completed **Ground** briefing labelled “Live GPT-5.6 map,” then switch to **Tension**. | “Instead of a verdict, GPT-5.6 returns a structured map. We begin with what is known, then bring one trade-off into focus—without pretending either route wins.” | Cut past the cold model wait. Let the Ground-to-Tension transition carry the visual change. |
+| 1:10–1:32 | Switch to **Fieldwork**, reveal one question and “Not yet,” then open the full Landscape. | “Next, Choice Atlas shows the question most likely to change the map. The third route is ‘Not yet’: a reversible field test, not a disguised recommendation. Only then do we open the full field—solid knowns, translucent assumptions, and fogged unknowns.” | Move one stage at a time; slow zoom only after the complete field appears. |
 | 1:32–1:50 | Architecture graphic: person → secure judge session → GPT-5.6 structured response → Zod FutureMap → landscape. | “Under the surface, the model is constrained by a FutureMap contract. The Vercel function validates every response and rejects recommendation-shaped output before the browser renders anything.” | Static diagram with a gentle pan across the five stages. |
 | 1:50–2:05 | Proof card: 29 tests, live production mapping, no recommendation boundary. | “We tested the contract, gate, client, and server in 29 automated tests, then verified the full live path in production.” | Large, readable numbers; hold for two seconds. |
 | 2:05–2:18 | Hero / live URL / final line. | “Choice Atlas does not decide a life for you. It gives you a better map for the decision you still own.” | Fade to project name, live link, and Devpost call to action. |
