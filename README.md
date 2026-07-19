@@ -44,6 +44,10 @@ Live mapping is deliberately judge-gated. A judge enters an access code in the i
 
 If the service is unavailable or the output fails validation, the interface keeps working with a clearly labelled illustrative preset. That is a reliability path, not a claim that the preset is personalised.
 
+### Temporary recording bypass (Preview only)
+
+For a private screen-recording session, Vercel Preview may set `CHOICE_ATLAS_DEMO_BYPASS=true`. The server honours this only when Vercel also supplies `VERCEL_ENV=preview`; it cannot disable the judge gate in Production. It is intentionally a short-lived capture aid: remove the Preview variable and redeploy before sharing the judge link. Never set it for Production.
+
 ## Deploy on Vercel
 
 1. Import this GitHub repository in Vercel and select the `dev` branch for a preview deployment (merge the PR to deploy `main` in production).

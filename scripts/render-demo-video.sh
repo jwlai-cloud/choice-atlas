@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FONT='/System/Library/Fonts/Supplemental/Verdana.ttf'
+FONT="${FONT:-/System/Library/Fonts/Supplemental/Verdana.ttf}"
 OUT='outputs/video'
 mkdir -p "$OUT"
+
+for input in outputs/choice-atlas-hero.png outputs/choice-atlas-demo-first-intake.png outputs/choice-atlas-live-map.png outputs/choice-atlas-decision-weather-detail.png outputs/choice-atlas-architecture.png outputs/choice-atlas-proof.png outputs/choice-atlas-voiceover.aiff; do
+  [[ -f "$input" ]] || { echo "Missing demo input: $input" >&2; exit 1; }
+done
+command -v ffmpeg >/dev/null || { echo 'Missing dependency: ffmpeg' >&2; exit 1; }
+command -v ffprobe >/dev/null || { echo 'Missing dependency: ffprobe' >&2; exit 1; }
+[[ -f "$FONT" ]] || { echo "Font not found: $FONT. Set FONT=/path/to/a.ttf before rendering." >&2; exit 1; }
 
 ffmpeg -y -loop 1 -t 15 -i outputs/choice-atlas-hero.png -vf "scale=1920:1080,drawbox=x=0:y=0:w=1920:h=1080:color=0x1e2a27@0.16:t=fill,drawtext=fontfile=${FONT}:text='A decision changes more than one life':fontcolor=white:fontsize=52:x=120:y=875:box=1:boxcolor=0x1e2a27@0.72:boxborderw=24,drawtext=fontfile=${FONT}:text='CHOICE ATLAS  /  A FIELD GUIDE FOR UNCERTAINTY':fontcolor=0xe5d3a0:fontsize=24:x=120:y=965,fade=t=in:st=0:d=0.5,fade=t=out:st=14.4:d=0.6" -r 30 -an "$OUT/01-hero.mp4"
 

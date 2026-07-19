@@ -72,4 +72,13 @@ describe('handleAtlasRequest', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Enter the judge access code to use live mapping.' })
     expect(requestMap).not.toHaveBeenCalled()
   })
+
+  it('permits a temporary demo bypass only when explicitly enabled for a preview deployment', async () => {
+    const requestMap = vi.fn().mockResolvedValue({ ...presetFutureMap, input })
+
+    const response = await handleAtlasRequest(request(input), requestMap, () => ({ configured: true, authorized: false }), true)
+
+    expect(response.status).toBe(200)
+    expect(requestMap).toHaveBeenCalledOnce()
+  })
 })
