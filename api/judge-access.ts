@@ -7,7 +7,7 @@ import {
   verifyJudgeAccessCode,
   type JudgeAccessConfig,
 } from '../server/lib/judgeAccess.js'
-import { previewDemoBypassEnabled } from './atlas.js'
+import { demoBypassEnabled } from './atlas.js'
 
 const responseHeaders = { 'cache-control': 'no-store' }
 
@@ -30,7 +30,7 @@ async function readCode(request: Request): Promise<string | undefined> {
   }
 }
 
-export async function handleJudgeAccessRequest(request: Request, config = readJudgeAccessConfig(), demoBypass = previewDemoBypassEnabled()): Promise<Response> {
+export async function handleJudgeAccessRequest(request: Request, config = readJudgeAccessConfig(), demoBypass = demoBypassEnabled()): Promise<Response> {
   if (request.method === 'GET') {
     if (demoBypass) return json({ authorized: true, demoBypass: true })
     return json({ authorized: readJudgeAccess(request, config).authorized })
