@@ -2,14 +2,17 @@
 
 A judge-ready Build Week prototype for meaningful two-option decisions. Choice Atlas asks GPT-5.6 to act as an *uncertainty cartographer*: it classifies what is known, assumed, and unknown without predicting an outcome or recommending a choice.
 
-## OpenAI Build Week evidence
+## How I collaborated with Codex and GPT-5.6
 
-Choice Atlas uses the two required OpenAI technologies in different, inspectable roles:
+Choice Atlas uses the two OpenAI technologies in different, inspectable roles. **GPT-5.6 is in the product at runtime; Codex was my collaborator throughout product definition, implementation, verification, and delivery.**
 
 - **GPT-5.6 powers the working product.** A judge-authorized request reaches the server-only [Responses API requester](server/lib/openaiRequester.ts), which calls `gpt-5.6` with structured output. The response is parsed and revalidated against the strict [FutureMap contract](src/lib/futureMap.ts) before the React UI can render it. The UI labels successful output **Live GPT-5.6 map**; the deterministic fallback never masquerades as live analysis.
-- **Codex accelerated the build and verification workflow.** It was used to translate the brief into the test-driven contract, implement the visual experience and Vercel security boundary, run checks, produce the architecture/demo artifacts, and deliver via protected `dev` → `main` pull requests. Codex is not part of the visitor’s runtime decision analysis.
+- **Product decisions with Codex.** I used Codex to turn the brief into a concrete, testable product boundary: exactly two routes, up to three priorities, one horizon, and an uncertainty cartographer that never chooses for a person. We deliberately rejected a pros-and-cons recommender and designed the “Not yet” path as evidence gathering, not disguised advice.
+- **Engineering decisions with Codex.** Codex accelerated the test-driven `FutureMap` contract, Zod validation boundary, OpenAI Responses API integration, Vercel functions, judge session, browser fallback, and responsive React decision field. The important engineering decision was to validate all model output server-side before it reached the UI, and to label the static preset honestly rather than impersonating a live result.
+- **Design decisions with Codex.** Codex helped shape the visual-first staged briefing: Ground → Tension → Fieldwork → Landscape. The interactive decision weather makes knowns solid, assumptions porous, and unknowns fogged, so people see the structure before reading the detail.
+- **Verification and delivery with Codex.** Codex generated and ran focused tests, type-checks, builds, browser checks, architecture/proof visuals, the demo storyboard, and the PR-based `dev` → `main` workflow. The project currently has 37 automated tests. Codex is not part of the visitor’s runtime decision analysis.
 
-See the concise [Build Week evidence record](docs/BUILD_WEEK_EVIDENCE.md), the [architecture graphic](outputs/choice-atlas-architecture.png), and the [final 1080p demo](outputs/video/choice-atlas-build-week-demo-1080p.mp4). The final video’s narration explicitly names both GPT-5.6’s runtime role and Codex’s build role.
+See the concise [Build Week evidence record](docs/BUILD_WEEK_EVIDENCE.md), the [architecture graphic](outputs/choice-atlas-architecture.png), and the [render script](scripts/render-demo-video.sh). Rendered video media stays local and is intentionally ignored by Git; the final public YouTube link belongs in the Devpost submission. Its narration explicitly names both GPT-5.6’s runtime role and Codex’s build role.
 
 ## Run it
 
