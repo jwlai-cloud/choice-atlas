@@ -40,7 +40,7 @@ Structured model output needs to be useful without quietly turning into advice. 
 
 ### Accomplishments we’re proud of
 
-- 37 automated tests across the data contract, model boundary, server endpoints, public-demo and judge-session modes, browser client, and demo scenarios.
+- 38 automated tests across the data contract, model boundary, server endpoints, public-demo and judge-session modes, browser client, and demo scenarios.
 - A verified production path from protected access → GPT-5.6 → validated FutureMap → interactive visual field.
 - One coherent decision landscape rather than two answer screens or a chatbot transcript.
 

@@ -26,9 +26,11 @@ export function publicDemoEnabled(env: NodeJS.ProcessEnv = process.env): boolean
 export async function handleAtlasRequest(request: Request, requestMap?: MapRequester, accessChecker: AccessChecker = readJudgeAccess, publicDemo = publicDemoEnabled()): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405)
 
-  const access = accessChecker(request)
-  if (!publicDemo && !access.configured) return json({ error: 'Live judge access is not configured.' }, 503)
-  if (!publicDemo && !access.authorized) return json({ error: 'Enter the judge access code to use live mapping.' }, 401)
+  if (!publicDemo) {
+    const access = accessChecker(request)
+    if (!access.configured) return json({ error: 'Live judge access is not configured.' }, 503)
+    if (!access.authorized) return json({ error: 'Enter the judge access code to use live mapping.' }, 401)
+  }
 
   let input
   try {

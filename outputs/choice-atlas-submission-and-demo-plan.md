@@ -51,7 +51,7 @@ The differentiator is deliberate restraint: Choice Atlas does not predict a futu
 
 #### Accomplishments we’re proud of
 
-- **37 automated tests** covering the contract, model boundary, server endpoints, public-demo and judge-session modes, browser client behaviour, landscape placement, and demo scenarios.
+- **38 automated tests** covering the contract, model boundary, server endpoints, public-demo and judge-session modes, browser client behaviour, landscape placement, and demo scenarios.
 - **One verified production live mapping** through the complete judge-gate → GPT-5.6 → validated visual-map path.
 - A real interactive landscape instead of a chat transcript or two answer screens.
 
@@ -86,7 +86,7 @@ The rendered 1080p cut is exactly 2:03, leaving a 57-second margin below the thr
 | 0:35–0:50 | Verified live GPT-5.6 map. | Ground, assumptions, and unknowns—not a prediction. | Cut around the observed cold wait. |
 | 0:50–1:12 | Animated decision-weather field. | Visual first reading: route currents, tension, and fog. | Captioned visual focus. |
 | 1:12–1:35 | Architecture handshake. | Protected judge session → GPT-5.6 → Zod FutureMap → visual field. | Native 1080p graphic. |
-| 1:35–1:55 | Proof card. | Codex-built, 37 tests, production live map, and no-advice boundary. | High-contrast proof point. |
+| 1:35–1:55 | Proof card. | Codex-built, 38 tests, production live map, and no-advice boundary. | High-contrast proof point. |
 | 1:55–2:03 | Closing hero. | “A better map for the decision you still own.” | Gentle fade. |
 
 ## Capture and edit plan

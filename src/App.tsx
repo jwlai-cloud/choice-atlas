@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { presetFutureMap, type AtlasItem, type FutureMap } from './lib/futureMap'
 import { requestFutureMap } from './lib/atlasClient'
 import { getJudgeAccessStatus, unlockJudgeAccess } from './lib/judgeAccessClient'
@@ -135,6 +135,8 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
   const [stage, setStage] = useState<BriefStage>('ground')
   const [tradeoffIndex, setTradeoffIndex] = useState(0)
   const [questionIndex, setQuestionIndex] = useState(0)
+  const [shouldFocusStage, setShouldFocusStage] = useState(false)
+  const stageHeadingRef = useRef<HTMLHeadingElement>(null)
   const knownA = itemForOption(map.knowns, 'a')
   const knownB = itemForOption(map.knowns, 'b')
   const unresolved = map.unknowns[0]
@@ -149,6 +151,17 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
     setTradeoffIndex(0)
     setQuestionIndex(0)
   }, [map])
+
+  useEffect(() => {
+    if (!shouldFocusStage) return
+    stageHeadingRef.current?.focus()
+    setShouldFocusStage(false)
+  }, [stage, shouldFocusStage])
+
+  function advanceStage(nextStage: BriefStage) {
+    setShouldFocusStage(true)
+    setStage(nextStage)
+  }
 
   function cycleTradeoff(direction: -1 | 1) {
     setTradeoffIndex((current) => (current + direction + map.tradeoffs.length) % map.tradeoffs.length)
@@ -168,24 +181,24 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
     </div>
     <div key={stage} id={`brief-panel-${stage}`} className={`brief-stage brief-${stage}`} role="tabpanel" aria-labelledby={`brief-tab-${stage}`}>
       {stage === 'ground' && <>
-        <div className="brief-lead brief-ground-lead"><p className="stage-kicker">{selectedStage.number} / first reading</p><h3>{headlineTension?.label ?? map.framing}</h3><p>Not a verdict—just the strongest pull now visible in the field.</p></div>
+        <div className="brief-lead brief-ground-lead"><p className="stage-kicker">{selectedStage.number} / first reading</p><h3 ref={stageHeadingRef} tabIndex={-1}>{headlineTension?.label ?? map.framing}</h3><p>Not a verdict—just the strongest pull now visible in the field.</p></div>
         <DecisionWeather tension={headlineTension} knownA={knownA} knownB={knownB} unresolved={unresolved} activePriorities={activePriorities} />
-        <div className="stage-next"><span>Next: name the cost in both directions.</span><button onClick={() => setStage('tension')}>Open tension <Icon name="arrow" /></button></div>
+        <div className="stage-next"><span>Next: name the cost in both directions.</span><button onClick={() => advanceStage('tension')}>Open tension <Icon name="arrow" /></button></div>
       </>}
       {stage === 'tension' && <>
-        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3 ref={stageHeadingRef} tabIndex={-1}>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
         {tradeoff && <article className="spotlight-tension"><span>↔</span><div><p>One tension to examine</p><h3>{tradeoff.label}</h3><p>{tradeoff.detail}</p></div></article>}
         {map.tradeoffs.length > 1 && <div className="brief-pager"><button onClick={() => cycleTradeoff(-1)} aria-label="Previous trade-off">←</button><span>{String(tradeoffIndex + 1).padStart(2, '0')} / {String(map.tradeoffs.length).padStart(2, '0')}</span><button onClick={() => cycleTradeoff(1)} aria-label="Next trade-off">→</button></div>}
-        <div className="stage-next"><span>Next: find the question that could change the map.</span><button onClick={() => setStage('fieldwork')}>Open fieldwork <Icon name="arrow" /></button></div>
+        <div className="stage-next"><span>Next: find the question that could change the map.</span><button onClick={() => advanceStage('fieldwork')}>Open fieldwork <Icon name="arrow" /></button></div>
       </>}
       {stage === 'fieldwork' && <>
-        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>The next useful move is often a question—not a conclusion.</h3></div>
+        <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3 ref={stageHeadingRef} tabIndex={-1}>The next useful move is often a question—not a conclusion.</h3></div>
         {question && <article className="spotlight-question"><span>{String(questionIndex + 1).padStart(2, '0')}</span><div><p>Question that could change the map</p><h3>{question.label}</h3><p>{question.detail}</p></div></article>}
-        <div className="fieldwork-footer"><div><p className="stage-kicker">The third route</p><h3>Not yet.</h3><p>{map.notYet.detail}</p></div><button onClick={() => setStage('landscape')}>Open the full field <Icon name="arrow" /></button></div>
+        <div className="fieldwork-footer"><div><p className="stage-kicker">The third route</p><h3>Not yet.</h3><p>{map.notYet.detail}</p></div><button onClick={() => advanceStage('landscape')}>Open the full field <Icon name="arrow" /></button></div>
         {map.questionsToInvestigate.length > 1 && <div className="brief-pager"><button onClick={() => cycleQuestion(-1)} aria-label="Previous question">←</button><span>{String(questionIndex + 1).padStart(2, '0')} / {String(map.questionsToInvestigate.length).padStart(2, '0')}</span><button onClick={() => cycleQuestion(1)} aria-label="Next question">→</button></div>}
       </>}
       {stage === 'landscape' && <>
-        <div className="brief-lead landscape-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>Now explore the whole field at your own pace.</h3><p>Hover or focus a signal to read its evidence note. Your selected priorities alter emphasis locally.</p></div>
+        <div className="brief-lead landscape-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3 ref={stageHeadingRef} tabIndex={-1}>Now explore the whole field at your own pace.</h3><p>Hover or focus a signal to read its evidence note. Your selected priorities alter emphasis locally.</p></div>
         <Landscape map={map} activePriorities={activePriorities} focus={focus} setFocus={setFocus} optionA={optionA} optionB={optionB} horizon={horizon} />
         <aside className="reading-panel briefing-reading" aria-live="polite"><div className="panel-top"><span className="panel-number">{focused ? 'Signal' : 'How to read it'}</span>{focused && <EvidenceMark type={focused.status} />}</div>{focused ? <><h3>{focused.label}</h3><p>{focused.detail}</p><button onClick={() => setFocus('')}>Return to field</button></> : <><h3>Solid, porous, or fogged.</h3><p><b>Known</b> signals are grounded in what was supplied. <b>Assumptions</b> need checking. <b>Unknowns</b> are not gaps to fill with confidence.</p></>}</aside>
       </>}
