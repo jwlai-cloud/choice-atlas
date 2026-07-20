@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { handleAtlasRequest, type AccessChecker } from './atlas'
+import { handleAtlasRequest, publicDemoEnabled, type AccessChecker } from './atlas'
 import { presetFutureMap } from '../src/lib/futureMap'
 import { LiveMappingConfigurationError } from '../server/lib/openaiRequester'
 
@@ -71,6 +71,21 @@ describe('handleAtlasRequest', () => {
     expect(response.status).toBe(401)
     await expect(response.json()).resolves.toEqual({ error: 'Enter the judge access code to use live mapping.' })
     expect(requestMap).not.toHaveBeenCalled()
+  })
+
+  it('allows a public demo without requiring judge configuration', async () => {
+    const requestMap = vi.fn().mockResolvedValue({ ...presetFutureMap, input })
+
+    const response = await handleAtlasRequest(request(input), requestMap, () => ({ configured: false, authorized: false }), true)
+
+    expect(response.status).toBe(200)
+    expect(requestMap).toHaveBeenCalledOnce()
+  })
+
+  it('only enables public demo for the explicit true setting', () => {
+    expect(publicDemoEnabled({ CHOICE_ATLAS_PUBLIC_DEMO: 'true' })).toBe(true)
+    expect(publicDemoEnabled({ CHOICE_ATLAS_PUBLIC_DEMO: 'TRUE' })).toBe(false)
+    expect(publicDemoEnabled({})).toBe(false)
   })
 
 })

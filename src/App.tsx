@@ -161,7 +161,7 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
   return <section className="decision-briefing" id="atlas" aria-labelledby="briefing-title">
     <header className="briefing-header">
       <div><p className="eyebrow">02 / Your decision briefing</p><h2 id="briefing-title">Start with what matters.<br/><em>Then widen the view.</em></h2></div>
-      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p>{headlineTension && <div className="brief-keyline"><span>First read</span><b>{headlineTension.label}</b></div>}</div>
+      <div className="briefing-intent"><span className={`map-source ${mapSource}`}>{mapSource === 'live' ? 'Live GPT-5.6 map' : 'Illustrative preset'}</span><p>This is a guide to possibilities and concerns—not a prediction or a verdict.</p><p className="briefing-sequence">Read it in order: ground → tension → fieldwork → landscape.</p>{headlineTension && <div className="brief-keyline"><span>First read</span><b>{headlineTension.label}</b></div>}</div>
     </header>
     <div className="brief-progress" role="tablist" aria-label="Decision briefing stages">
       {briefStages.map((item) => <button key={item.id} id={`brief-tab-${item.id}`} role="tab" aria-selected={stage === item.id} aria-controls={`brief-panel-${item.id}`} onClick={() => setStage(item.id)}><span>{item.number}</span><b>{item.label}</b><small>{item.cue}</small></button>)}
@@ -170,11 +170,13 @@ function DecisionBriefing({ map, mapSource, activePriorities, focus, setFocus, o
       {stage === 'ground' && <>
         <div className="brief-lead brief-ground-lead"><p className="stage-kicker">{selectedStage.number} / first reading</p><h3>{headlineTension?.label ?? map.framing}</h3><p>Not a verdict—just the strongest pull now visible in the field.</p></div>
         <DecisionWeather tension={headlineTension} knownA={knownA} knownB={knownB} unresolved={unresolved} activePriorities={activePriorities} />
+        <div className="stage-next"><span>Next: name the cost in both directions.</span><button onClick={() => setStage('tension')}>Open tension <Icon name="arrow" /></button></div>
       </>}
       {stage === 'tension' && <>
         <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>A trade-off is a real cost in two directions—not a failure to decide.</h3></div>
         {tradeoff && <article className="spotlight-tension"><span>↔</span><div><p>One tension to examine</p><h3>{tradeoff.label}</h3><p>{tradeoff.detail}</p></div></article>}
         {map.tradeoffs.length > 1 && <div className="brief-pager"><button onClick={() => cycleTradeoff(-1)} aria-label="Previous trade-off">←</button><span>{String(tradeoffIndex + 1).padStart(2, '0')} / {String(map.tradeoffs.length).padStart(2, '0')}</span><button onClick={() => cycleTradeoff(1)} aria-label="Next trade-off">→</button></div>}
+        <div className="stage-next"><span>Next: find the question that could change the map.</span><button onClick={() => setStage('fieldwork')}>Open fieldwork <Icon name="arrow" /></button></div>
       </>}
       {stage === 'fieldwork' && <>
         <div className="brief-lead"><p className="stage-kicker">{selectedStage.number} / {selectedStage.cue}</p><h3>The next useful move is often a question—not a conclusion.</h3></div>

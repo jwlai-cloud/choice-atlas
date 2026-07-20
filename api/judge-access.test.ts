@@ -41,4 +41,11 @@ describe('handleJudgeAccessRequest', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Live judge access is not configured.' })
   })
 
+  it('reports authorized without a code when public demo is enabled', async () => {
+    const response = await handleJudgeAccessRequest(request('GET'), undefined, true)
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ authorized: true })
+  })
+
 })
