@@ -7,6 +7,7 @@ import {
   verifyJudgeAccessCode,
   type JudgeAccessConfig,
 } from '../server/lib/judgeAccess.js'
+import { publicDemoEnabled } from './atlas.js'
 
 const responseHeaders = { 'cache-control': 'no-store' }
 
@@ -29,9 +30,10 @@ async function readCode(request: Request): Promise<string | undefined> {
   }
 }
 
-export async function handleJudgeAccessRequest(request: Request, config = readJudgeAccessConfig()): Promise<Response> {
-  if (request.method === 'GET') return json({ authorized: readJudgeAccess(request, config).authorized })
+export async function handleJudgeAccessRequest(request: Request, config = readJudgeAccessConfig(), publicDemo = publicDemoEnabled()): Promise<Response> {
+  if (request.method === 'GET') return json({ authorized: publicDemo || readJudgeAccess(request, config).authorized })
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405)
+  if (publicDemo) return json({ authorized: true })
   if (!config) return json({ error: 'Live judge access is not configured.' }, 503)
 
   const code = await readCode(request)
