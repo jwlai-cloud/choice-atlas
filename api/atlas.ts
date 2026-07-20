@@ -18,11 +18,9 @@ function logMappingFailure(error: unknown) {
 
 export type AccessChecker = (request: Request) => JudgeAccessState
 
-/** Temporary capture escape hatch. A future expiry is mandatory, including on Production. */
-export function demoBypassEnabled(env: NodeJS.ProcessEnv = process.env, now = new Date()): boolean {
-  if (env.CHOICE_ATLAS_DEMO_BYPASS !== 'true') return false
-  const expiresAt = Date.parse(env.CHOICE_ATLAS_DEMO_BYPASS_EXPIRES_AT ?? '')
-  return Number.isFinite(expiresAt) && expiresAt > now.getTime()
+/** Temporary capture escape hatch. Remove the environment variable after recording. */
+export function demoBypassEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.CHOICE_ATLAS_DEMO_BYPASS === 'true'
 }
 
 export async function handleAtlasRequest(request: Request, requestMap?: MapRequester, accessChecker: AccessChecker = readJudgeAccess, demoBypass = demoBypassEnabled()): Promise<Response> {

@@ -20,10 +20,10 @@ function request(body: unknown) {
 const allowed: AccessChecker = () => ({ configured: true, authorized: true })
 
 describe('handleAtlasRequest', () => {
-  it('allows the capture bypass only with an explicit future expiry, including production', () => {
-    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'true', CHOICE_ATLAS_DEMO_BYPASS_EXPIRES_AT: '2026-07-20T15:00:00.000Z' }, new Date('2026-07-20T14:00:00.000Z'))).toBe(true)
-    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'true', CHOICE_ATLAS_DEMO_BYPASS_EXPIRES_AT: '2026-07-20T13:00:00.000Z' }, new Date('2026-07-20T14:00:00.000Z'))).toBe(false)
-    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'true' }, new Date('2026-07-20T14:00:00.000Z'))).toBe(false)
+  it('allows the capture bypass only when explicitly enabled', () => {
+    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'true' })).toBe(true)
+    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'false' })).toBe(false)
+    expect(demoBypassEnabled({})).toBe(false)
   })
 
   it('returns a validated live map for valid input', async () => {
