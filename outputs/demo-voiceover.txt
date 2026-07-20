@@ -1,19 +1,27 @@
-Some decisions do not belong in a pros-and-cons list.
+When the future feels unstable, even a simple life decision can become heavy.
 
-For a family, choosing whether to stay, move, lead, build, or wait can change work, belonging, money, and everyday life at once. The hardest part is not finding an answer. It is seeing what the answer would ask everyone to carry.
+For many young people, the question is not just “Should I take this job?” It is: what happens to my work, my finances, my family, my sense of belonging—if I choose this path instead of that one?
 
-Choice Atlas is an uncertainty cartographer for that moment.
+Choice Atlas is built for that moment.
 
-Start with exactly two routes, the values that matter, and a time horizon. Use a quick start for the demo, or edit the fork until it is truly yours.
+It does not hand you a confident answer. It gives you a clearer way to see the decision you are already carrying.
 
-Then, in a private judge session, GPT-5.6 reads the field through the OpenAI Responses API. It does not choose. It separates known ground from assumptions, unknowns, trade-offs, and questions worth investigating.
+Start with two possible routes, the priorities that matter most, and a time horizon. You can begin with a familiar dilemma, like staying with a team or moving for a new role. Or you can write any real fork in your own life.
 
-The first result is visual. Two route currents move across the field. Their central pull names the tension. Fog holds what cannot honestly be predicted. The selected priorities change the emphasis, so the map is about this decision, not a generic future.
+Now, Choice Atlas maps the uncertainty live with GPT-5.6.
 
-From there, one trade-off comes into focus. Then one question that could change the map. And there is a legitimate third route: not yet. Gather one piece of lived evidence before committing.
+GPT-5.6 reads the routes, priorities, and horizon you provide. It separates known ground from assumptions, unknowns, trade-offs, and questions worth investigating. It is not predicting a future or choosing for you. It is showing where more clarity could come from.
 
-Under the surface, the live map is protected by a judge gate. The OpenAI key stays server-side. GPT-5.6 returns a structured response, and a strict FutureMap contract validates it before the browser can render it. Recommendation-shaped output has no place in the contract.
+The first read is visual. Two moving currents represent the routes. Their meeting point names the central tension. Fog is not a bug or an empty space: it is a signal that something important is still unknown.
 
-Codex accelerated this build: the test-driven contract, visual field, server boundary, checks, and delivery. We verified the complete live path and built thirty-three automated checks around the contract, access boundary, client, and server.
+This changes the conversation. Instead of a page of advice, a family, a partner, or a young person can point to the part that feels risky: the cost of moving, the possibility of losing community, the opportunity that may be worth exploring, or the information that is simply missing. The map makes room for those different concerns to be seen together.
 
-Choice Atlas does not decide a life for a family. It gives them a clearer, more honest field in which to decide together.
+Next, we move through one trade-off at a time. Then a question that could genuinely change the map. And finally, there is “Not yet”: a small, reversible way to gather lived evidence before making a bigger commitment.
+
+The full landscape stays interactive. Priorities change the emphasis locally, so the map reflects the values in this dilemma—not a generic future.
+
+Under the surface, GPT-5.6 returns a structured FutureMap that is validated before it appears here. The interface never has to guess at the model’s meaning: knowns, assumptions, unknowns, trade-offs, investigations, and the reversible path each have a deliberate place in the experience. That boundary matters: Choice Atlas is designed to make uncertainty visible, not to manufacture certainty.
+
+Codex helped me turn that principle into a working product: the visual system, the test-driven safety contract, the live integration, and the checks that keep the experience honest.
+
+Choice Atlas cannot decide a life for you. But it can help you see the shape of the choice—and decide with more care.
