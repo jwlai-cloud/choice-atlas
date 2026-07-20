@@ -8,3 +8,4 @@ dist/
 
 # Rendered demo media is reproducible from the checked-in script and source copy.
 outputs/video/
+outputs/choice-atlas-gpt-voice.mp3

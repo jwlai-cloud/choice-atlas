@@ -18,17 +18,12 @@ function logMappingFailure(error: unknown) {
 
 export type AccessChecker = (request: Request) => JudgeAccessState
 
-/** Temporary capture escape hatch. Remove the environment variable after recording. */
-export function demoBypassEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
-  return env.CHOICE_ATLAS_DEMO_BYPASS === 'true'
-}
-
-export async function handleAtlasRequest(request: Request, requestMap?: MapRequester, accessChecker: AccessChecker = readJudgeAccess, demoBypass = demoBypassEnabled()): Promise<Response> {
+export async function handleAtlasRequest(request: Request, requestMap?: MapRequester, accessChecker: AccessChecker = readJudgeAccess): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Method not allowed.' }, 405)
 
   const access = accessChecker(request)
-  if (!demoBypass && !access.configured) return json({ error: 'Live judge access is not configured.' }, 503)
-  if (!demoBypass && !access.authorized) return json({ error: 'Enter the judge access code to use live mapping.' }, 401)
+  if (!access.configured) return json({ error: 'Live judge access is not configured.' }, 503)
+  if (!access.authorized) return json({ error: 'Enter the judge access code to use live mapping.' }, 401)
 
   let input
   try {

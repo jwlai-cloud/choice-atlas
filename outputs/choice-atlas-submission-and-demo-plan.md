@@ -51,7 +51,7 @@ The differentiator is deliberate restraint: Choice Atlas does not predict a futu
 
 #### Accomplishments we’re proud of
 
-- **34 automated tests** covering the contract, model boundary, server endpoints, judge session, browser client behaviour, landscape placement, demo scenarios, and the visible Build Week evidence record.
+- **34 automated tests** covering the contract, model boundary, server endpoints, judge session, browser client behaviour, landscape placement, and demo scenarios.
 - **One verified production live mapping** through the complete judge-gate → GPT-5.6 → validated visual-map path.
 - A real interactive landscape instead of a chat transcript or two answer screens.
 

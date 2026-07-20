@@ -8,7 +8,8 @@
     "test": "vitest run --passWithNoTests",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "check": "tsc -b"
+    "check": "tsc -b",
+    "demo:voice": "node scripts/generate-demo-voice.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

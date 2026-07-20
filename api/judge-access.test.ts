@@ -41,11 +41,4 @@ describe('handleJudgeAccessRequest', () => {
     await expect(response.json()).resolves.toEqual({ error: 'Live judge access is not configured.' })
   })
 
-  it('reports the preview-only demo bypass as authorized without issuing a cookie', async () => {
-    const response = await handleJudgeAccessRequest(request('GET'), undefined, true)
-
-    expect(response.status).toBe(200)
-    await expect(response.json()).resolves.toEqual({ authorized: true, demoBypass: true })
-    expect(response.headers.get('set-cookie')).toBeNull()
-  })
 })

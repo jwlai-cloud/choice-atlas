@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { demoBypassEnabled, handleAtlasRequest, type AccessChecker } from './atlas'
+import { handleAtlasRequest, type AccessChecker } from './atlas'
 import { presetFutureMap } from '../src/lib/futureMap'
 import { LiveMappingConfigurationError } from '../server/lib/openaiRequester'
 
@@ -20,12 +20,6 @@ function request(body: unknown) {
 const allowed: AccessChecker = () => ({ configured: true, authorized: true })
 
 describe('handleAtlasRequest', () => {
-  it('allows the capture bypass only when explicitly enabled', () => {
-    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'true' })).toBe(true)
-    expect(demoBypassEnabled({ CHOICE_ATLAS_DEMO_BYPASS: 'false' })).toBe(false)
-    expect(demoBypassEnabled({})).toBe(false)
-  })
-
   it('returns a validated live map for valid input', async () => {
     const requestMap = vi.fn().mockResolvedValue({ ...presetFutureMap, input })
 
@@ -79,12 +73,4 @@ describe('handleAtlasRequest', () => {
     expect(requestMap).not.toHaveBeenCalled()
   })
 
-  it('permits a temporary demo bypass only when explicitly enabled for a preview deployment', async () => {
-    const requestMap = vi.fn().mockResolvedValue({ ...presetFutureMap, input })
-
-    const response = await handleAtlasRequest(request(input), requestMap, () => ({ configured: true, authorized: false }), true)
-
-    expect(response.status).toBe(200)
-    expect(requestMap).toHaveBeenCalledOnce()
-  })
 })
