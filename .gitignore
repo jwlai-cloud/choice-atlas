@@ -5,3 +5,6 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Rendered demo media is reproducible from the checked-in script and source copy.
+outputs/video/

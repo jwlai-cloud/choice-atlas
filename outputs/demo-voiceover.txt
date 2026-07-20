@@ -14,6 +14,6 @@ From there, one trade-off comes into focus. Then one question that could change 
 
 Under the surface, the live map is protected by a judge gate. The OpenAI key stays server-side. GPT-5.6 returns a structured response, and a strict FutureMap contract validates it before the browser can render it. Recommendation-shaped output has no place in the contract.
 
-Codex accelerated this build: the test-driven contract, visual field, server boundary, checks, and delivery. We verified the complete live path and built thirty-three automated checks around the contract, access boundary, client, and server.
+Codex accelerated this build: the test-driven contract, visual field, server boundary, checks, and delivery. We verified the complete live path and built thirty-seven automated checks around the contract, access boundary, client, and server.
 
 Choice Atlas does not decide a life for a family. It gives them a clearer, more honest field in which to decide together.
