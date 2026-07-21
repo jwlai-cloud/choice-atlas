@@ -19,7 +19,7 @@ const speech = await client.audio.speech.create({
   instructions:
     "Speak as a thoughtful, warm human product storyteller. Calm confidence, natural pauses, and gentle emphasis on human agency. Avoid sales energy, synthetic cadence, and dramatic announcer delivery.",
   response_format: "mp3",
-  speed: 0.94,
+  speed: 1.0,
 });
 
 await writeFile(

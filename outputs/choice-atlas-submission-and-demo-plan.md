@@ -29,7 +29,7 @@ Some decisions are too human to reduce to a pros-and-cons list: stay and lead th
 Choice Atlas turns exactly two possible routes, up to three priorities, and a time horizon into one explorable decision landscape.
 
 1. A person names the two routes and the values that matter locally.
-2. GPT-5.6 acts as an uncertainty cartographer and returns structured knowns, assumptions, unknowns, trade-offs, investigation questions, and a “Not yet” field test.
+2. GPT-5.6 runs live on those exact inputs—real-time inference for that specific dilemma, not a canned template—and, acting as an uncertainty cartographer, returns structured knowns, assumptions, unknowns, trade-offs, investigation questions, and a “Not yet” field test.
 3. The interface first reveals one useful lens at a time—known ground, a single trade-off, then a next question—before opening the complete field.
 4. The full landscape renders solid marks for knowns, translucent marks for assumptions, and fog for unknowns.
 
@@ -75,32 +75,26 @@ OpenAI API, GPT-5.6, OpenAI Responses API, React, Vite, TypeScript, Zod, Vercel,
 - Source: <https://github.com/jwlai-cloud/choice-atlas>
 - Judge code: provide separately in Devpost’s private judge-instructions field.
 
-## Final 2:03 demo storyboard and narration
+## Final demo video (2:55 live UI walkthrough)
 
-The rendered 1080p cut is exactly 2:03, leaving a 57-second margin below the three-minute limit. It is available at `outputs/video/choice-atlas-build-week-demo-1080p.mp4`; its premium voice-over source and edit script are retained alongside it for review.
+The submission cut is a live, screen-driven walkthrough at 1920×1080, running **2:55** (5 seconds under the three-minute cap). It is at `outputs/video/choice-atlas-demo-v2-1080p.mp4`; the timed narration script is `outputs/demo-script-v5.md`, and the silent master is `outputs/video/choice-atlas-demo-v2-1080p-silent.mp4`. The narration names both **Codex** (build-time coding agent) and **GPT-5.6** (live runtime model) explicitly.
 
-| Time | On screen | Narration | Edit direction |
-|---|---|---|---|
-| 0:00–0:15 | Hero: “A decision changes more than one life.” | The family benefit and problem. | Editorial fade. |
-| 0:15–0:35 | Quick-start, editable two-route intake. | Start with exactly two meaningful routes. | Captioned screen proof. |
-| 0:35–0:50 | Verified live GPT-5.6 map. | Ground, assumptions, and unknowns—not a prediction. | Cut around the observed cold wait. |
-| 0:50–1:12 | Animated decision-weather field. | Visual first reading: route currents, tension, and fog. | Captioned visual focus. |
-| 1:12–1:35 | Architecture handshake. | Protected judge session → GPT-5.6 → Zod FutureMap → visual field. | Native 1080p graphic. |
-| 1:35–1:55 | Proof card. | Codex-built, 38 tests, production live map, and no-advice boundary. | High-contrast proof point. |
-| 1:55–2:03 | Closing hero. | “A better map for the decision you still own.” | Gentle fade. |
+Unlike a stills montage, the video drives the real deployed UI. It types **custom** routes ("Take the job offer in another city" vs "Stay near family and friends"), fires a live GPT-5.6 request, and lands on a **Live GPT-5.6 map** whose content is clearly generated for that exact input — visible proof the mapping is live, not a preset.
 
-## Capture and edit plan
+| Time | On screen (real UI) | Narration beat |
+|---|---|---|
+| 0:00–0:38 | Hero + the pain: forks in the road; advice that doesn't fit. | State the real problem in plain language. |
+| 0:38–0:55 | Type two custom routes into the intake. | You supply the two real routes, in your own words. |
+| 0:55–1:08 | Select priorities + time horizon. | What matters, over what horizon. |
+| 1:08–1:25 | Click Map → GPT-5.6 works live (cold wait trimmed). | The model reasons on your exact routes, right now. |
+| 1:25–1:45 | Live GPT-5.6 map — decision-weather first read. | Known ground, tension, and honest fog; never a prediction. |
+| 1:45–2:17 | Tension → Fieldwork tabs: a trade-off, a question, "Not yet". | One piece at a time; a small reversible next step. |
+| 2:17–2:37 | Landscape tab; hover a signal for its evidence note. | Explore the whole field; priorities shift emphasis. |
+| 2:37–2:55 | Build-week evidence + limitation, then close. | Built with Codex; the model maps, it never decides. |
 
-1. **Browser Use for clean proof and stills.** Use the in-app browser to create a dedicated, notification-free session; pre-unlock it; capture the hero, intake, live-map, focused-signal, trade-offs, and Not yet frames. Browser Use is ideal for verifying the UI, inspecting the live label, and taking repeatable screenshots. It does not provide a video-recording API in this session.
-2. **Screen recording for motion.** Record only the browser window in a clean dedicated profile or via the operating system’s screen recorder. The footage will show typed routes and priority selection, then cut from the Map click to the completed live map so judges do not wait through the observed cold request. Do not record the access-code entry, Vercel dashboard, or any secret.
-3. **Architecture card.** Build a compact SVG/Mermaid-style graphic from the five-stage sequence above—not a generic AI diagram.
-4. **Edit.** The checked-in edit is normalized to 1920×1080 at 30 fps with short fades and readable captions. Watch once muted to ensure the visual narrative stands on its own.
-5. **Voice-over.** This Mac has the locally installed `Karen (Premium)` English-Australian voice. Set `VOICE` to any installed compatible macOS voice (list them with `say -v '?'`) before rendering. After the narration is approved, generate a clean voice track and normalize it:
+## Capture and edit pipeline
 
-   ```bash
-   VOICE="Karen (Premium)"
-   say -v "$VOICE" -r 178 -f demo-voiceover.txt -o choice-atlas-voiceover.aiff
-   ffmpeg -i choice-atlas-voiceover.aiff -af "loudnorm=I=-16:LRA=11:TP=-1.5" choice-atlas-voiceover.m4a
-   ```
-
-   Then mix it beneath the finished video with FFmpeg, using a low-level ambient bed only if it does not compete with the narration.
+1. **Automated live capture.** `scripts/capture-demo.mjs` (Playwright) drives the deployed UI at 1920×1080 — typing, clicking, scrolling — and records the real motion, including the live GPT-5.6 response. It is deterministic and re-runnable; the long cold model call is auto-excised in post so the cut stays tight. Do not film any access-code entry, the Vercel dashboard, or any secret.
+2. **Render.** The script normalizes to 1920×1080 / 30 fps and outputs a silent master.
+3. **Voice-over.** Narration is generated from `outputs/demo-script-v5.md` with OpenAI `gpt-4o-mini-tts` via `npm run demo:voice` (an ElevenLabs track can be dropped in instead and swapped with the same mux step). It explicitly credits Codex and GPT-5.6.
+4. **Mux and fit under the cap.** Fit the video and narration to a single target under 3:00 — video `setpts`, pitch-preserved audio `atempo` — with `loudnorm=I=-16:LRA=11:TP=-1.5`, then re-probe the final duration to confirm it is under the limit.

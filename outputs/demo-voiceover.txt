@@ -1,27 +1,21 @@
-When the future feels unstable, even a simple life decision can become heavy.
+We all hit forks in the road. Take the new job, or stay. Move to another city, or keep the life you've built. And when we go looking for help, we usually get one of two things — someone confidently telling us what to do, as if they knew our life. Or a flat list of pros and cons that strips all the feeling out of it. Neither one really helps.
 
-For many young people, the question is not just “Should I take this job?” It is: what happens to my work, my finances, my family, my sense of belonging—if I choose this path instead of that one?
+What actually helps is seeing the decision clearly. What do you already know for sure? What are you only assuming? And what is genuinely unknown — the part nobody can promise you? That's what Choice Atlas shows you — an app we designed and built with Codex as our coding agent, and powered live by GPT-5.6.
 
-Choice Atlas is built for that moment.
+It starts with you. You type in the two real routes you're weighing, in your own words — like taking a job offer in another city, or staying near the family and friends you love. Any true fork in your life fits into these two fields.
 
-It does not hand you a confident answer. It gives you a clearer way to see the decision you are already carrying.
+Then you tell it what actually matters to you here — things like creative depth, belonging, or financial runway — up to three. And you set a time horizon: three months, one year, or three years.
 
-Start with two possible routes, the priorities that matter most, and a time horizon. You can begin with a familiar dilemma, like staying with a team or moving for a new role. Or you can write any real fork in your own life.
+Now the important part. Choice Atlas hands your two routes to GPT-5.6, and the model works through them live — right now, for your exact situation. This is not a canned template. Every map is reasoned on the spot, from the routes, the priorities, and the horizon you gave it.
 
-Now, Choice Atlas maps the uncertainty live with GPT-5.6.
+And the first thing you see isn't a wall of text — it's a picture. Two currents are your two routes. Where they cross is the real tension between them. The solid points are known ground. And the fog? That's honest — it marks what simply can't be known yet. The model maps your uncertainty; it never pretends to predict your future.
 
-GPT-5.6 reads the routes, priorities, and horizon you provide. It separates known ground from assumptions, unknowns, trade-offs, and questions worth investigating. It is not predicting a future or choosing for you. It is showing where more clarity could come from.
+From there it walks you through it, one piece at a time. First, a single trade-off. A trade-off isn't you failing to decide — it's a real cost pulling both ways: what one route gives you is often what the other route asks you to give up.
 
-The first read is visual. Two moving currents represent the routes. Their meeting point names the central tension. Fog is not a bug or an empty space: it is a signal that something important is still unknown.
+Then a question worth investigating — something concrete that could actually change the picture, like shadowing an ordinary workday before you commit. And a route people forget: "Not yet." A small, reversible test, to gather real evidence before a big, hard-to-undo choice.
 
-This changes the conversation. Instead of a page of advice, a family, a partner, or a young person can point to the part that feels risky: the cost of moving, the possibility of losing community, the opportunity that may be worth exploring, or the information that is simply missing. The map makes room for those different concerns to be seen together.
+Finally, the whole landscape opens up, and you explore it at your own pace. Hover any point to read its note. Solid marks are grounded in what you told it. Softer marks are assumptions worth checking. Fog is what stays unknown. Your priorities shift the emphasis — so this map is the shape of your decision, not a generic one.
 
-Next, we move through one trade-off at a time. Then a question that could genuinely change the map. And finally, there is “Not yet”: a small, reversible way to gather lived evidence before making a bigger commitment.
+Under the surface, GPT-5.6 returns a structured map that's checked and validated before it ever reaches the screen. And Codex was our coding agent for the whole build — it wrote the test-driven safety contract, the visual system, the server integration, and the thirty-eight automated tests that keep it honest. GPT-5.6 maps the terrain, live; it never tells you which way to go.
 
-The full landscape stays interactive. Priorities change the emphasis locally, so the map reflects the values in this dilemma—not a generic future.
-
-Under the surface, GPT-5.6 returns a structured FutureMap that is validated before it appears here. The interface never has to guess at the model’s meaning: knowns, assumptions, unknowns, trade-offs, investigations, and the reversible path each have a deliberate place in the experience. That boundary matters: Choice Atlas is designed to make uncertainty visible, not to manufacture certainty.
-
-Codex helped me turn that principle into a working product: the visual system, the test-driven safety contract, the live integration, and the checks that keep the experience honest.
-
-Choice Atlas cannot decide a life for you. But it can help you see the shape of the choice—and decide with more care.
+Choice Atlas can't decide your life for you. But it can help you see the true shape of the choice — and make it with more care.

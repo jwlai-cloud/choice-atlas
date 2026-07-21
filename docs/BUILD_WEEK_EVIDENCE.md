@@ -28,4 +28,4 @@ This is a development-workflow claim, not a claim that Codex is part of a visito
 - Run `npm test -- --run`, `npm run check`, and `npm run build`.
 - Inspect `server/lib/openaiRequester.ts` for the model call and `src/lib/futureMap.ts` for the strict runtime contract.
 - Open the deployed app, enter the private judge access code, map an editable two-route dilemma, and confirm the map-source label changes to **Live GPT-5.6 map**.
-- See `outputs/choice-atlas-submission-and-demo-plan.md` and `outputs/video/choice-atlas-build-week-demo-1080p.mp4` for the final demo assets.
+- See `outputs/choice-atlas-submission-and-demo-plan.md` and `outputs/video/choice-atlas-demo-v2-1080p.mp4` (the live UI walkthrough) for the final demo assets.

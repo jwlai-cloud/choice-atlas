@@ -4,7 +4,7 @@ Choice Atlas is a visual uncertainty map for meaningful life dilemmas. A person 
 
 ## How Codex and GPT-5.6 contributed
 
-**GPT-5.6 is the runtime uncertainty cartographer.** The server calls the OpenAI Responses API with `gpt-5.6`, requests structured output, validates it against the Zod `FutureMap` contract, and only then renders the interactive decision field. It maps the supplied dilemma; it never predicts, ranks, or recommends.
+**GPT-5.6 is the runtime uncertainty cartographer.** On every request the server calls the OpenAI Responses API with `gpt-5.6` live, in real time on the user's own two routes, requests structured output, validates it against the Zod `FutureMap` contract, and only then renders the interactive decision field. It maps the supplied dilemma; it never predicts, ranks, or recommends.
 
 **Codex was my build collaborator.** It accelerated the conversion of the product brief into the test-driven `FutureMap` boundary, React decision briefing, responsive decision-weather visual system, secure server integration, browser checks, architecture assets, demo planning, and PR-based delivery. Key product choices made during that collaboration were: keep exactly two routes, present uncertainty before prose, retain a “Not yet” path, and reject recommendation-shaped model output at runtime.
 
